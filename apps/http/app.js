@@ -2,9 +2,10 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
-
 import dotenv from 'dotenv';
-
+import userRoutes from "./routes/user.js";
+import shipRoutes from "./routes/ship.js";
+import connectDB from './connections/db.js';
 // Load environment variables
 dotenv.config();
 
@@ -15,13 +16,9 @@ const app = express();
 app.use(cors()); // Enable CORS
 app.use(bodyParser.json()); // Parse JSON request bodies
 app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded bodies
-
-
-
-// Routes (add your routes here)
-// import exampleRoute from './routes/exampleRoute.js';
-// app.use('/api/example', exampleRoute);
-
+connectDB(); // Connect to the database
+app.use('/user', userRoutes);
+app.use('/ship', shipRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
