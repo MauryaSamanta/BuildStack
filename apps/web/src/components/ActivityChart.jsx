@@ -1,96 +1,123 @@
-import React, { useRef, useEffect } from 'react';
-import { Box } from '@mui/material';
-import * as d3 from 'd3';
+import React, { useEffect, useRef } from "react";
+import * as d3 from "d3";
+import { Box, useTheme } from "@mui/material";
 
-const ActivityChart = () => {
+const ActivityChart = ({ data }) => {
   const svgRef = useRef(null);
+  const theme = useTheme();
 
   useEffect(() => {
-    // Data representing number of ships and corresponding days
-    const data = [
-      { day: '2023-01-01', ships: 10 },
-      { day: '2023-01-02', ships: 15 },
-      { day: '2023-01-03', ships: 25 },
-      { day: '2023-01-04', ships: 30 },
-      { day: '2023-01-05', ships: 34 },
-      { day: '2023-01-06', ships: 18 },
-      { day: '2023-01-07', ships: 20 },
-      
-    ];
-  
-    // Set up dimensions and margins
-    const margin = { top: 20, right: 30, bottom: 40, left: 40 };
-    const width = 800 - margin.left - margin.right;
-    const height = 400 - margin.top - margin.bottom;
-  
-    // Create scales
-    const xScale = d3.scaleBand()
-      .domain(data.map(d => d.day))
-      .range([0, width])
-      .padding(0.1);
-  
-    const yScale = d3.scaleLinear()
-      .domain([0, d3.max(data, d => d.ships)])
+    // Get the last 7 data points
+    const recentData = data;
+
+    const svg = d3.select(svgRef.current);
+    svg.selectAll("*").remove(); // Clear previous content
+
+    const width = 600; // Width for the visible portion of the chart
+    const fullWidth = data.length * 100; // Full width to allow scrolling
+    const height = 300;
+    const margin = { top: 20, right: 30, bottom: 30, left: 40 };
+
+    // Set up scales
+    const x = d3
+      .scalePoint()
+      .domain(data.map((d) => d.date))
+      .range([margin.left, fullWidth - margin.right])
+      .padding(0.5);
+
+    const y = d3
+      .scaleLinear()
+      .domain([0, d3.max(data, (d) => d.value) || 1])
       .nice()
-      .range([height, 0]);
-  
-    // Append the svg element to the ref container
-    const svg = d3.select(svgRef.current)
-      .attr('width', width + margin.left + margin.right)
-      .attr('height', height + margin.top + margin.bottom)
-      .append('g')
-      .attr('transform', `translate(${margin.left},${margin.top})`);
-  
-    // Filter data to show every 4th date
-    const filteredData = data.filter((d, i) => i % 4 === 0);
-  
-    // Add the x-axis
-    svg.append('g')
-      .selectAll('.x-axis')
-      .data(filteredData)
-      .enter()
-      .append('g')
-      .attr('transform', d => `translate(${xScale(d.day)}, 0)`)
-      .append('text')
-      .attr('y', height)
-      .attr('dy', '0.35em')
-      .style('text-anchor', 'middle')
-      .style('fill', '#fff')
-      .text(d => d.day);
-  
-    // Add the y-axis
-    svg.append('g')
-      .call(d3.axisLeft(yScale).ticks(5))
-      .selectAll('text')
-      .style('fill', '#fff');
-  
-    // Create the line
-    const line = d3.line()
-      .x(d => xScale(d.day) + xScale.bandwidth() / 2)
-      .y(d => yScale(d.ships));
-  
-    svg.append('path')
-      .data([data])
-      .attr('class', 'line')
-      .attr('d', line)
-      .style('fill', 'none')
-      .style('stroke', '#635acc')
-      .style('stroke-width', 2);
-  
-    // Add circles to represent the data points
-    svg.selectAll('.circle')
+      .range([height - margin.bottom, margin.top]);
+
+    // Draw axes
+    const xAxis = d3.axisBottom(x).tickSizeOuter(0);
+    const yAxis = d3.axisLeft(y).ticks(3);
+
+    svg
+      .append("g")
+      .attr("transform", `translate(0,${height - margin.bottom})`)
+      .call(xAxis)
+      .selectAll("text")
+      .style("fill", "white");
+
+    svg
+      .append("g")
+      .attr("transform", `translate(${margin.left},0)`) // Keep it fixed
+      .call(yAxis)
+      .selectAll("text")
+      .style("fill", "white");
+
+    // Draw grid lines
+    svg
+      .append("g")
+      .attr("stroke", theme.palette.grey[700])
+      .attr("stroke-opacity", 0.3)
+      .call((g) =>
+        g
+          .selectAll("line")
+          .data(y.ticks(3))
+          .join("line")
+          .attr("x1", margin.left)
+          .attr("x2", fullWidth - margin.right)
+          .attr("y1", (d) => y(d))
+          .attr("y2", (d) => y(d))
+      );
+
+    // Draw the line
+    const line = d3
+      .line()
+      .x((d) => x(d.date) || 0)
+      .y((d) => y(d.value))
+      .curve(d3.curveLinear);
+
+    svg
+      .append("path")
+      .datum(data)
+      .attr("fill", "none")
+      .attr("stroke", "white")
+      .attr("stroke-width", 2)
+      .attr("d", line);
+
+    // Draw circles
+    svg
+      .append("g")
+      .selectAll("circle")
       .data(data)
-      .enter()
-      .append('circle')
-      .attr('class', 'circle')
-      .attr('cx', d => xScale(d.day) + xScale.bandwidth() / 2)
-      .attr('cy', d => yScale(d.ships))
-      .attr('r', 5)
-      .style('fill', '#635acc');
-  }, []);
+      .join("circle")
+      .attr("cx", (d) => x(d.date) || 0)
+      .attr("cy", (d) => y(d.value))
+      .attr("r", 5)
+      .attr("fill", "white")
+      .attr("stroke", theme.palette.grey[900])
+      .attr("stroke-width", 2);
+  }, [data, theme]);
+
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      <svg ref={svgRef} />
+    <Box
+      sx={{
+        backgroundColor: theme.palette.grey[900],
+        borderRadius: "8px",
+        padding: "16px",
+        overflowX: "auto", // Enable horizontal scrolling
+        '&::-webkit-scrollbar': {
+          height: '3px', // Width of the scrollbar
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#1e1e1e', // Track background color
+          borderRadius: '3px', // Track rounded corners
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: 'linear-gradient(145deg, #444, #888)', // Thumb gradient
+          borderRadius: '3px', // Thumb rounded corners
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: 'linear-gradient(145deg, #666, #aaa)', // Hover effect on thumb
+        },
+      }}
+    >
+      <svg ref={svgRef} width={data.length * 100} height="300"></svg>
     </Box>
   );
 };

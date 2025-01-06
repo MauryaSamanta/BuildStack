@@ -1,13 +1,100 @@
-import React from 'react';
-import { Box, Typography, TextField, Button, Grid, Paper, useMediaQuery } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Box, Typography, TextField, Button, Grid, Paper, useMediaQuery, CircularProgress } from '@mui/material';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ShipList from '../components/ShipList'; // Assuming ShipList is a component that lists ships.
 import Navbar from '../components/Navbar';
 import ActivityChart from '../components/ActivityChart';
-
+import { useSelector } from 'react-redux';
+import Empty from "../assets/images/empty-folder.png";
 const MainPageMobile = () => {
   const isSmallScreen = useMediaQuery('(max-width: 768px)'); // Media query for phones and tablets
+  const user=useSelector(state=>state.user);
+  const token=useSelector(state=>state.token);
+  const [ships,setShips]=useState([]);  
+   const [todaysShips,setTodaysShips]=useState(0);
+   const [totalShips,setTotalShips]=useState(0);
+   const [activityData,setActivityData]=useState([]);
+   const [loading,setloading]=useState(false);
+   const [formData, setFormData] = useState({
+         userId: user.id,
+         title: '',
+       });
+   
+       const handleInputChange = (e) => {
+         const { name, value } = e.target;
+         console.log(name, value)
+         setFormData({ ...formData, [name]: value });
+       };
+   useEffect(() => {
+     setloading(true);
+     const getships=async()=>{
+       const response=await fetch(`http://localhost:3000/ship/getships/${user.id}`,{
+         method:"GET",
+       });
+       const ships=await response.json();
+       console.log(ships); 
+       setloading(false);
+       setShips(ships);
+       setTodaysShips(ships.todaysShips);
+       setTotalShips(ships.totalShips);
+       setActivityData(ships.shipsPerDay);
+     }
+     getships();
+   },[]);
+ 
+   const saveShip=async()=>{
+     setloading(true);
+     try {
+       const response=await fetch(`http://localhost:3000/ship/save`,{
+         method:"POST",
+         headers:{"Content-Type":"application/json"},
+         body:JSON.stringify(formData)
+       });
+       const returneddata=await response.json();
+       setShips((prevState) => ({
+         ...prevState, // Keep all other attributes unchanged
+         ships: [returneddata,...prevState.ships], // Update the `ships` array
+       }));
+       setloading(false);
+       setTodaysShips((prev)=>prev+1);
+       setTotalShips((prev)=>prev+1);
+       const createdAtDate = new Date(returneddata.createdAt);
+       const dateString = createdAtDate.toLocaleDateString("en-US", {
+         month: "short",
+         day: "numeric",
+       });
+ 
+       // Find the index of the date in activityData
+       const index = activityData.findIndex((data) => data.date === dateString);
+ 
+       // If the date exists, increment the value
+       if (index !== -1) {
+         const updatedData = [...activityData];
+         updatedData[index].value += 1;
+         setActivityData(updatedData); // Update the state
+       }
+     } catch (error) {
+       console.log(error);
+     }
+     setFormData({...formData, title:''});
+ 
+   }
 
+    // const activityData = [
+    //   { date: "Dec 24", value: 0 },
+    //   { date: "Dec 25", value: 0 },
+    //   { date: "Dec 26", value: 0 },
+    //   { date: "Dec 27", value: 0 },
+    //   { date: "Dec 28", value: 0 },
+    //   { date: "Dec 29", value: 1 },
+    //   { date: "Dec 30", value: 0 },
+    //   { date: "Dec 31", value: 0 },
+    //   { date: "Jan 1", value: 0 },
+    //   { date: "Jan 2", value: 3 },
+    //   { date: "Jan 3", value: 0 },
+    //   { date: "Jan 4", value: 0 },
+    //   { date: "Jan 5", value: 0 },
+    // ];
   return (
     <Box
       sx={{
@@ -45,6 +132,9 @@ const MainPageMobile = () => {
               placeholder="I built..."
               fullWidth
               multiline
+              name="title"
+              value={formData.title}
+              onChange={handleInputChange}
               sx={{
                 backgroundColor: '#1e1e1e',
                 borderRadius: 2,
@@ -81,8 +171,8 @@ const MainPageMobile = () => {
               marginTop: 2, // Adjust space between button and textfield
             }}
           >
-            <Typography variant="button" sx={{ fontFamily: 'rubik' }}>
-              Save!!
+            <Typography variant="button" sx={{ fontFamily: 'rubik' }}  onClick={user && token && !loading && saveShip}>
+            {user && token?( !loading?("Save!!"):(<CircularProgress size={20} color='black'/>)):("Sign up!!")}
             </Typography>
           </Button>
           <Box
@@ -125,7 +215,7 @@ const MainPageMobile = () => {
                   fontSize: 25,
                 }}
               >
-                5
+                {todaysShips}
               </Typography>
             </Paper>
             <Paper
@@ -159,37 +249,18 @@ const MainPageMobile = () => {
                   fontSize: 25,
                 }}
               >
-                5
+                {totalShips}
               </Typography>
             </Paper>
           </Box>
           <Box sx={{ marginTop: 5 }}>
-            <ActivityChart />
+            <ActivityChart data={activityData} />
           </Box>
         </Grid>
 
-        {/* Right Column: List of Ships */}
-        {isSmallScreen ? (
-          <Grid item xs={12} >
-            <Typography
-              variant="h5"
-              sx={{
-                color: '#ffffff',
-                fontFamily: 'k2d',
-                textAlign: 'left',
-                fontSize: 18,
-               // marginBottom: 2,
-              }}
-            >
-              Your Ships
-            </Typography>
-            <Box sx={{ maxHeight: '80vh', overflowY: 'auto', paddingTop: 5 }}>
-              <ShipList /> {/* Ship List for small screens */}
-            </Box>
-          </Grid>
-        ) : (
+        
           <Grid item xs={12} md={6}>
-            <Box sx={{ maxHeight: '80vh', overflowY: 'auto', paddingTop: 5 }}>
+            {ships?.ships?.length>0?(<Box sx={{ maxHeight: '80vh', overflowY: 'auto', paddingTop: 5 }}>
               <Typography
                 variant="h5"
                 sx={{
@@ -202,10 +273,29 @@ const MainPageMobile = () => {
               >
                 Your Ships
               </Typography>
-              <ShipList /> {/* Ship List for larger screens */}
+              <ShipList ships={ships}/> {/* Ship List for larger screens */}
+            </Box>):(
+              <Box sx={{ maxHeight: '80vh', overflowY: 'auto', paddingTop: 5 }}>
+              <Typography
+                variant="h5"
+                sx={{
+                  color: '#ffffff',
+                  fontFamily: 'k2d',
+                  textAlign: 'left',
+                  fontSize: 18,
+                  marginBottom: 2,
+                }}
+              >
+                Your Ships
+              </Typography>
+              <Box sx={{alignItems:'center',justifyContent:'center',display:'flex',flexDirection:'column'}}>
+               <img src={Empty} alt="Empty" style={{width:100,height:100, alignSelf:'center'}}/>
+              <Typography variant="h5" sx={{ color: 'grey', fontFamily: "k2d", textAlign: 'left', fontSize: 18, marginBottom:2 }}>Seems you haven't shipped anything yet</Typography>
+              </Box>
             </Box>
+            )}
           </Grid>
-        )}
+        
       </Grid>
     </Box>
   );

@@ -9,7 +9,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
 export const signupUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
+    console.log(req.body);
     // Check if the username already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {

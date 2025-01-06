@@ -1,5 +1,6 @@
 import Ship from '../models/Ship.js';  // Assuming your Ship model is in the 'models' directory
 import User from '../models/User.js';  // Assuming your User model is in the 'models' directory
+import { getShipsPerDay, getTodaysShips, getTotalShips } from '../services/ship.js';
 
 // Save a new ship for a user
 export const saveShip = async (req, res) => {
@@ -79,20 +80,42 @@ export const deleteShip = async (req, res) => {
 export const getShips = async (req, res) => {
   try {
     const { userId } = req.params;  // Get userId from the URL params
-
+    
     // Find all ships for the given user
     const ships = await Ship.find({ userId }).sort({ createdAt: -1 }); // Sort by creation date, descending order
+    
+    const [todaysShips, totalShips, shipsPerDay] = await Promise.all([
+      getTodaysShips(userId),
+      getTotalShips(userId),
+      getShipsPerDay(userId),
+    ]);
+    //console.log(shipsPerDay)
 
-    // If no ships are found, return a message
-    if (ships.length === 0) {
-      return res.status(404).json({ message: 'No ships found for this user' });
-    }
+    res.status(200).json({ ships,todaysShips, totalShips, shipsPerDay });
+  
 
     // Return the list of ships
-    res.status(200).json(ships);
+    //res.status(200).json(ships);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+export const getShipStats = async (req, res) => {
+  try {
+    const { userId } = req.params;  // Get userId from the URL params
+
+    const [todaysShips, totalShips, shipsPerDay] = await Promise.all([
+      getTodaysShips(userId),
+      getTotalShips(userId),
+      getShipsPerDay(userId),
+    ]);
+    //console.log(todaysShips);
+
+    res.status(200).json({ todaysShips, totalShips, shipsPerDay });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to retrieve ship stats', error: error.message });
   }
 };
 

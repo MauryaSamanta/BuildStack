@@ -18,6 +18,7 @@ router.put('/edit/:id', editShip); // Requires `id` as a parameter to identify t
 router.delete('/delete/:id', deleteShip); // Requires `id` as a parameter to identify the ship
 
 // Route to get all ships for a user
-router.get('/getships', getShips);
+router.get('/getships/:userId', getShips);
+
 
 export default router;

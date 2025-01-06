@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route, BrowserRouter } from 'react-rou
 import MainPage from './pages/MainPage';
 import { createMuiTheme, createTheme, CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material';
 import MainPageMobile from './pages/MainPageMobile';
-
+import {useSelector} from 'react-redux';
+import AuthPage from './pages/AuthPage';
 const App = () => {
   const theme = createTheme({
     overrides: {
@@ -24,7 +25,8 @@ const App = () => {
     }
   });
   const isSmallScreen = useMediaQuery('(max-width: 768px)'); // Media query for phones and tablets
-
+  const user=useSelector(state=>state.user);
+  const token=useSelector(state=>state.token);
   return (
     <BrowserRouter>
     <ThemeProvider theme={theme}>
@@ -32,7 +34,8 @@ const App = () => {
      <CssBaseline />
 
       <Routes>
-        <Route path="/" element={!isSmallScreen?<MainPage />:<MainPageMobile/>} />
+        <Route path="/" element={user && token?(!isSmallScreen?<MainPage />:<MainPageMobile/>):(<AuthPage/>)} />
+        <Route path="/home" element={!isSmallScreen?<MainPage />:<MainPageMobile/>} />
         {/* Add more routes as needed */}
       </Routes>
       </ThemeProvider>

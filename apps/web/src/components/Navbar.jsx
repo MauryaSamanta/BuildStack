@@ -2,10 +2,14 @@ import React from 'react';
 import { AppBar, Toolbar, Typography, Button, Box, useMediaQuery } from '@mui/material';
 import Logo from '../assets/images/mayflower-ship.png';
 import Logout from '../assets/images/logout.png';
+import { useDispatch, useSelector } from 'react-redux';
+import { setLogout } from '../state';
 
 const Navbar = () => {
   const isSmallScreen = useMediaQuery('(max-width: 600px)'); // Check for small screens
-
+  const user=useSelector(state=>state.user);  
+  const token=useSelector(state=>state.token);
+  const dispatch=useDispatch();
   return (
     <AppBar
       sx={{
@@ -40,7 +44,7 @@ const Navbar = () => {
           </Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Button
+         {user && token && <Button
             variant="text"
             sx={{
               color: '#ffffff',
@@ -52,6 +56,9 @@ const Navbar = () => {
               },
               fontSize: isSmallScreen ? '0.85rem' : '1rem', // Adjust button font size
             }}
+            onClick={()=>{dispatch(
+              setLogout()
+            )}}
           >
             <img
               src={Logout}
@@ -61,7 +68,7 @@ const Navbar = () => {
               style={{ marginRight: 5 }}
             />
             Sign Out
-          </Button>
+          </Button>}
         </Box>
       </Toolbar>
     </AppBar>
