@@ -163,7 +163,7 @@ const MainPage = () => {
               <Typography variant="h5" sx={{ color: '#ffffff', fontFamily: "K2D", textAlign: 'left', fontWeight: 'bold', fontSize: 25 }}>{totalShips}</Typography>
             </Paper>
           </Box>
-          <Box sx={{marginTop:5}}>
+          <Box sx={{marginTop:5, width:550}}>
           <ActivityChart data={activityData}/>
           </Box>
         </Grid>
@@ -173,7 +173,8 @@ const MainPage = () => {
           {user && token && ships?.ships?.length>0 && !loading?(<Box sx={{ maxHeight: '80vh', overflowY: 'auto', paddingTop: 5, marginTop:5 }}>
             <Typography variant="h5" sx={{ color: '#ffffff', fontFamily: "k2d", textAlign: 'left', fontSize: 18, marginBottom:2 }}>Your Ships</Typography>
             {/* Ship List should be scrollable */}
-            <ShipList ships={ships}/>
+            <ShipList ships={ships} setShips={setShips} setTodaysShips={setTodaysShips} setTotalShips={setTotalShips} setActivityData={setActivityData}
+            activityData={activityData}/>
           </Box>):!loading && ships?.ships?.length===0?(
             <Box sx={{ maxHeight: '80vh', overflowY: 'auto', paddingTop: 5, marginTop:5}}>
              <Typography variant="h5" sx={{ color: '#ffffff', fontFamily: "k2d", textAlign: 'left', fontSize: 18, marginBottom:2 }}>Your Ships</Typography>

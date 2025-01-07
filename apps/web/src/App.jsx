@@ -35,7 +35,7 @@ const App = () => {
 
       <Routes>
         <Route path="/" element={user && token?(!isSmallScreen?<MainPage />:<MainPageMobile/>):(<AuthPage/>)} />
-        <Route path="/home" element={!isSmallScreen?<MainPage />:<MainPageMobile/>} />
+        <Route path="/home" element={!isSmallScreen && user && token?(<MainPage />):(isSmallScreen && user && token ?(<MainPageMobile/>):(<AuthPage/>))} />
         {/* Add more routes as needed */}
       </Routes>
       </ThemeProvider>

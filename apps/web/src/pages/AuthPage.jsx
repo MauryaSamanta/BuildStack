@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, Paper, useMediaQuery } from '@mui/material';
+import { Box, TextField, Button, Typography, Paper, useMediaQuery, CircularProgress } from '@mui/material';
 import Logo from '../assets/images/mayflower-ship.png';
 import { useDispatch } from 'react-redux';
 import { setLogin } from '../state';
@@ -16,6 +16,7 @@ const AuthPage = () => {
   const isMediumScreen = useMediaQuery('(max-width:960px)');
   const dispatch = useDispatch();
   const navigate=useNavigate();
+  const [loading,setloading]=useState(false);
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -23,7 +24,9 @@ const AuthPage = () => {
 
   const handleSubmit = async(e) => {
     e.preventDefault();
+   
     if(isLogin){
+      setloading(true); 
       try {
         const response=await fetch('http://localhost:3000/user/v1/login',{
         method:"POST",
@@ -42,12 +45,13 @@ const AuthPage = () => {
       );
       if(loggedInUser)
         navigate('/home');
+      setloading(false);
       } catch (error) {
         
       }
     }
     else
-    {
+    {  setloading(true); 
       try {
         const response=await fetch('http://localhost:3000/user/v1/signup',{
         method:"POST",
@@ -67,6 +71,7 @@ const AuthPage = () => {
       );
       if(loggedInUser)
         navigate('/home');
+      setloading(false);
       } catch (error) {
         
       }
@@ -248,7 +253,7 @@ const AuthPage = () => {
               fontFamily: 'k2d',
             }}
           >
-            {isLogin ? 'Login' : 'Sign Up'}
+            {isLogin && !loading ? ('Login' ):(!isLogin && !loading? ('Sign Up'):(<CircularProgress size={20} color='black'/>))}  
           </Button>
         </form>
 

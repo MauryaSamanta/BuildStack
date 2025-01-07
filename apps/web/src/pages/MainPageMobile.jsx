@@ -260,7 +260,7 @@ const MainPageMobile = () => {
 
         
           <Grid item xs={12} md={6}>
-            {ships?.ships?.length>0?(<Box sx={{ maxHeight: '80vh', overflowY: 'auto', paddingTop: 5 }}>
+            {ships?.ships?.length>0 && !loading?(<Box sx={{ maxHeight: '80vh', overflowY: 'auto',paddingTop:2 }}>
               <Typography
                 variant="h5"
                 sx={{
@@ -273,8 +273,9 @@ const MainPageMobile = () => {
               >
                 Your Ships
               </Typography>
-              <ShipList ships={ships}/> {/* Ship List for larger screens */}
-            </Box>):(
+              <ShipList ships={ships} setShips={setShips} setTodaysShips={setTodaysShips} setTotalShips={setTotalShips} setActivityData={setActivityData}
+            activityData={activityData}/>
+            </Box>):ships?.ships?.length===0 && !loading?(
               <Box sx={{ maxHeight: '80vh', overflowY: 'auto', paddingTop: 5 }}>
               <Typography
                 variant="h5"
@@ -293,6 +294,8 @@ const MainPageMobile = () => {
               <Typography variant="h5" sx={{ color: 'grey', fontFamily: "k2d", textAlign: 'left', fontSize: 18, marginBottom:2 }}>Seems you haven't shipped anything yet</Typography>
               </Box>
             </Box>
+            ):loading && (
+              <CircularProgress color='grey' thickness={5} size={30}/>  
             )}
           </Grid>
         

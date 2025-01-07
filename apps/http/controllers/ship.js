@@ -36,7 +36,7 @@ export const editShip = async (req, res) => {
   try {
     const { id } = req.params;  // Get the ship id from the URL
     const { title } = req.body;  // Get updated title from the request body
-
+    //console.log(req.body);
     // Find the ship by ID
     const ship = await Ship.findById(id);
     if (!ship) {

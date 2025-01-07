@@ -4,14 +4,18 @@ import { Box, useTheme } from "@mui/material";
 
 const ActivityChart = ({ data }) => {
   const svgRef = useRef(null);
+  const yAxisRef = useRef(null); // Ref for the fixed Y-axis
+  const scrollableBoxRef = useRef(null); // Ref for the scrollable container
   const theme = useTheme();
 
   useEffect(() => {
-    // Get the last 7 data points
     const recentData = data;
 
     const svg = d3.select(svgRef.current);
     svg.selectAll("*").remove(); // Clear previous content
+
+    const yAxisSvg = d3.select(yAxisRef.current);
+    yAxisSvg.selectAll("*").remove(); // Clear previous Y-axis content
 
     const width = 600; // Width for the visible portion of the chart
     const fullWidth = data.length * 100; // Full width to allow scrolling
@@ -33,7 +37,7 @@ const ActivityChart = ({ data }) => {
 
     // Draw axes
     const xAxis = d3.axisBottom(x).tickSizeOuter(0);
-    const yAxis = d3.axisLeft(y).ticks(3);
+    const yAxis = d3.axisLeft(y).ticks(3).tickFormat((d) => (d === 0 ? "" : d));;
 
     svg
       .append("g")
@@ -42,9 +46,11 @@ const ActivityChart = ({ data }) => {
       .selectAll("text")
       .style("fill", "white");
 
-    svg
+    yAxisSvg
+      .attr("width", margin.left)
+      .attr("height", height)
       .append("g")
-      .attr("transform", `translate(${margin.left},0)`) // Keep it fixed
+      .attr("transform", `translate(${margin.left},0)`)
       .call(yAxis)
       .selectAll("text")
       .style("fill", "white");
@@ -94,30 +100,65 @@ const ActivityChart = ({ data }) => {
       .attr("stroke-width", 2);
   }, [data, theme]);
 
+  useEffect(() => {
+    // Scroll to the extreme right
+    if (scrollableBoxRef.current) {
+      scrollableBoxRef.current.scrollLeft =
+        scrollableBoxRef.current.scrollWidth;
+    }
+  }, [data]);
+
   return (
     <Box
       sx={{
         backgroundColor: theme.palette.grey[900],
         borderRadius: "8px",
         padding: "16px",
-        overflowX: "auto", // Enable horizontal scrolling
+        display: "flex",
+        position: "relative",
         '&::-webkit-scrollbar': {
-          height: '3px', // Width of the scrollbar
+          height: '3px',
         },
         '&::-webkit-scrollbar-track': {
-          background: '#1e1e1e', // Track background color
-          borderRadius: '3px', // Track rounded corners
+          background: '#1e1e1e',
+          borderRadius: '3px',
         },
         '&::-webkit-scrollbar-thumb': {
-          background: 'linear-gradient(145deg, #444, #888)', // Thumb gradient
-          borderRadius: '3px', // Thumb rounded corners
+          background: 'linear-gradient(145deg, #444, #888)',
+          borderRadius: '3px',
         },
         '&::-webkit-scrollbar-thumb:hover': {
-          background: 'linear-gradient(145deg, #666, #aaa)', // Hover effect on thumb
+          background: 'linear-gradient(145deg, #666, #aaa)',
         },
       }}
     >
-      <svg ref={svgRef} width={data.length * 100} height="300"></svg>
+      {/* Fixed Y-axis */}
+      <svg ref={yAxisRef} style={{ position: "absolute", zIndex: 1 }}></svg>
+      
+      {/* Scrollable chart */}
+      <Box
+        ref={scrollableBoxRef}
+        sx={{
+          overflowX: "auto",
+          width: "100%",
+          '&::-webkit-scrollbar': {
+          height: '3px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#1e1e1e',
+          borderRadius: '3px',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: 'linear-gradient(145deg, #444, #888)',
+          borderRadius: '3px',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: 'linear-gradient(145deg, #666, #aaa)',
+        },
+        }}
+      >
+        <svg ref={svgRef} width={data.length * 100} height="300"></svg>
+      </Box>
     </Box>
   );
 };
