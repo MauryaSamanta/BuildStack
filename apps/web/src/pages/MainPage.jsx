@@ -29,7 +29,7 @@ const MainPage = () => {
   useEffect(() => {
     setloading(true);
     const getships=async()=>{
-      const response=await fetch(`http://localhost:3000/ship/getships/${user.id}`,{
+      const response=await fetch(`https://buildstack.onrender.com/ship/getships/${user.id}`,{
         method:"GET",
       });
       const ships=await response.json();
@@ -46,7 +46,7 @@ const MainPage = () => {
   const saveShip=async()=>{
     setloading(true);
     try {
-      const response=await fetch(`http://localhost:3000/ship/save`,{
+      const response=await fetch(`https://buildstack.onrender.com/ship/save`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(formData)

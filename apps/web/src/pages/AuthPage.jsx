@@ -28,7 +28,7 @@ const AuthPage = () => {
     if(isLogin){
       setloading(true); 
       try {
-        const response=await fetch('http://localhost:3000/user/v1/login',{
+        const response=await fetch('https://buildstack.onrender.com/user/v1/login',{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(formData)
@@ -53,7 +53,7 @@ const AuthPage = () => {
     else
     {  setloading(true); 
       try {
-        const response=await fetch('http://localhost:3000/user/v1/signup',{
+        const response=await fetch('https://buildstack.onrender.com/user/v1/signup',{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(formData)
