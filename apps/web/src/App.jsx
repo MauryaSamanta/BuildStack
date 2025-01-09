@@ -5,6 +5,7 @@ import { createMuiTheme, createTheme, CssBaseline, ThemeProvider, useMediaQuery 
 import MainPageMobile from './pages/MainPageMobile';
 import {useSelector} from 'react-redux';
 import AuthPage from './pages/AuthPage';
+import PrivacyPolicyPage from './pages/Privacy';
 const App = () => {
   const theme = createTheme({
     overrides: {
@@ -36,7 +37,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={user && token?(!isSmallScreen?<MainPage />:<MainPageMobile/>):(<AuthPage/>)} />
         <Route path="/home" element={!isSmallScreen && user && token?(<MainPage />):(isSmallScreen && user && token ?(<MainPageMobile/>):(<AuthPage/>))} />
-        {/* Add more routes as needed */}
+        {/* <Route path="/privacy" element={<PrivacyPolicyPage/>} /> */}
       </Routes>
       </ThemeProvider>
   </BrowserRouter>

@@ -256,7 +256,23 @@ const AuthPage = () => {
             {isLogin && !loading ? ('Login' ):(!isLogin && !loading? ('Sign Up'):(<CircularProgress size={20} color='black'/>))}  
           </Button>
         </form>
-
+        {/* <Typography
+          sx={{
+            marginTop: isSmallScreen ? '20px' : '30px',
+            color: '#ffffff',
+            fontWeight: 600,
+            cursor: 'pointer',
+            fontSize: '14px',
+            //textDecoration: 'underline',
+            '&:hover': {
+              color: '#cccccc',
+            },
+            fontFamily: 'k2d',
+          }}
+          onClick={() => {navigate('/privacy')}}  
+        >
+          By Signing up, you agree to our Privacy Policy
+        </Typography> */}
         <Typography
           sx={{
             marginTop: isSmallScreen ? '20px' : '30px',

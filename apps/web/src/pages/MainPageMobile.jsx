@@ -6,6 +6,7 @@ import Navbar from '../components/Navbar';
 import ActivityChart from '../components/ActivityChart';
 import { useSelector } from 'react-redux';
 import Empty from "../assets/images/empty-folder.png";
+import SaveIcon from "../assets/images/bookmark.png"; 
 const MainPageMobile = () => {
   const isSmallScreen = useMediaQuery('(max-width: 768px)'); // Media query for phones and tablets
   const user=useSelector(state=>state.user);
@@ -171,6 +172,7 @@ const MainPageMobile = () => {
               marginTop: 2, // Adjust space between button and textfield
             }}
           >
+             <img src={SaveIcon} alt="Save" style={{width:20,height:20,marginRight:5}}/>
             <Typography variant="button" sx={{ fontFamily: 'rubik' }}  onClick={user && token && !loading && saveShip}>
             {user && token?( !loading?("Save!!"):(<CircularProgress size={20} color='black'/>)):("Sign up!!")}
             </Typography>
