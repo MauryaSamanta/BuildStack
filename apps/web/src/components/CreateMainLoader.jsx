@@ -26,6 +26,7 @@ const CreateMainLoader = () => {
     "Your future self will thank you for the time you spend coding today.",
     "Don’t compare your Chapter 1 to someone else’s Chapter 20. Keep coding!",
   ];
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * messages.length);
@@ -66,7 +67,7 @@ const CreateMainLoader = () => {
       </Box>
 
       {/* Loading Text */}
-      <Typography
+      {!isSmallScreen && <Typography
         sx={{
           color: "white",
           fontSize: "20px",
@@ -79,7 +80,7 @@ const CreateMainLoader = () => {
         }}
       >
         {messages[index]}
-      </Typography>
+      </Typography>}
 
       {/* Keyframes for animations */}
       <style>
