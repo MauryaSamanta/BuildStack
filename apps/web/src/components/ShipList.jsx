@@ -190,7 +190,7 @@ setselectedships(ships.ships);
             backgroundColor: "#6a6a6a",
             color: "white",
           },
-          fontFamily:'k2d', fontSize:16, color:'white',
+          fontFamily:'k2d', fontSize:12, color:'white',
            textTransform: "none"
         }}
         onClick={()=>{handleprojectclick('All')}}>
@@ -241,6 +241,8 @@ setselectedships(ships.ships);
         {projects?.map((project, index)=>(
           <Button sx={{
             padding: "4px 16px",
+            whiteSpace: 'nowrap',
+            minWidth: 'fit-content',
             borderRadius: 2,
             border: "2px solid",
             borderColor: selectedFilter === project ? "#4a4a4a" : "#4a4a4a",
@@ -251,9 +253,10 @@ setselectedships(ships.ships);
               backgroundColor: "#6a6a6a",
               color: "white",
             },
-            fontFamily:'k2d', fontSize:16, color:'white',
+            fontFamily:'k2d', fontSize:12, color:'white',
              textTransform: "none"
           }}
+          
           onClick={()=>{handleprojectclick(project)}}>
             
               {project}
