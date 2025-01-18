@@ -14,13 +14,12 @@ export const saveShip = async (req, res) => {
     }
 
     // Create a new ship document
-    const newShip = new Ship({
+    let newShip = new Ship({
       userId,
       title,
       //createdAt: new Date(),
     });
-
-    // Save the new ship
+ // Save the new ship
     await newShip.save();
 
     // Return the newly created ship
@@ -82,7 +81,7 @@ export const getShips = async (req, res) => {
     const { userId } = req.params;  // Get userId from the URL params
     
     // Find all ships for the given user
-    const ships = await Ship.find({ userId }).sort({ createdAt: -1 }); // Sort by creation date, descending order
+    const ships = await Ship.find({ userId }).sort({ createdAt: -1 }).populate('project'); // Sort by creation date, descending order
     
     const [todaysShips, totalShips, shipsPerDay] = await Promise.all([
       getTodaysShips(userId),

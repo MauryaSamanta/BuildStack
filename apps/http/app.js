@@ -5,6 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import userRoutes from "./routes/user.js";
 import shipRoutes from "./routes/ship.js";
+import projectRoutes from "./routes/project.js";
 import connectDB from './connections/db.js';
 // Load environment variables
 dotenv.config();
@@ -19,6 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true })); // Parse URL-encoded bodies
 connectDB(); // Connect to the database
 app.use('/user', userRoutes);
 app.use('/ship', shipRoutes);
+app.use('/projects', projectRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

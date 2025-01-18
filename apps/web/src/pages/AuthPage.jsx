@@ -4,6 +4,7 @@ import Logo from '../assets/images/mayflower-ship.png';
 import { useDispatch } from 'react-redux';
 import { setLogin } from '../state';
 import { useNavigate } from 'react-router-dom';
+import GitHubIcon from '@mui/icons-material/GitHub';
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [formData, setFormData] = useState({
@@ -78,7 +79,17 @@ const AuthPage = () => {
     }
   };
 
-  return (
+  const handlegithub = () => {
+    const GITHUB_CLIENT_ID = "Ov23linkw39HN1VwNk18";
+    const REDIRECT_URI = 'http://localhost:5173/callback';
+    
+    // GitHub OAuth URL
+    const githubUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=user:email,repo`;
+    
+    // Redirect to GitHub
+    window.location.href = githubUrl;
+  };
+ return (
     <Box
       sx={{
         display: 'flex',
@@ -149,6 +160,27 @@ const AuthPage = () => {
         >
           {isLogin ? 'Welcome Back!' : 'Join Us!'}
         </Typography>
+        <Button
+            //type="submit"
+            sx={{
+              width: '100%',
+              marginBottom:2,
+              padding: isSmallScreen ? '12px' : '15px',
+              background: 'black',
+              color: 'white',
+              fontWeight: 800,
+              fontSize: isSmallScreen ? '14px' : '16px',
+              borderRadius: '10px',
+              boxShadow:
+                '0 4px 10px rgba(255, 255, 255, 0.3), inset 0 -2px 6px rgba(0, 0, 0, 0.2)',
+              
+              fontFamily: 'k2d',
+            }}
+            startIcon={<GitHubIcon />}
+            onClick={()=>{handlegithub()}}
+          >
+            Login with Github  
+          </Button>
 
         <form onSubmit={handleSubmit}>
           <Typography
@@ -255,24 +287,8 @@ const AuthPage = () => {
           >
             {isLogin && !loading ? ('Login' ):(!isLogin && !loading? ('Sign Up'):(<CircularProgress size={20} color='black'/>))}  
           </Button>
+         
         </form>
-        {/* <Typography
-          sx={{
-            marginTop: isSmallScreen ? '20px' : '30px',
-            color: '#ffffff',
-            fontWeight: 600,
-            cursor: 'pointer',
-            fontSize: '14px',
-            //textDecoration: 'underline',
-            '&:hover': {
-              color: '#cccccc',
-            },
-            fontFamily: 'k2d',
-          }}
-          onClick={() => {navigate('/privacy')}}  
-        >
-          By Signing up, you agree to our Privacy Policy
-        </Typography> */}
         <Typography
           sx={{
             marginTop: isSmallScreen ? '20px' : '30px',

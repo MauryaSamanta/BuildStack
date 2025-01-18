@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   List,
@@ -10,17 +10,29 @@ import {
   TextField,
   Button,
   Typography,
+  useMediaQuery,
+  Paper,
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-const ShipList = ({ships, setShips, setTotalShips, setTodaysShips, setActivityData, activityData}) => {
- // console.log(ships)
+import { useSelector } from 'react-redux';
+import CloseIcon from '@mui/icons-material/Close';
+const ShipList = ({ships, setShips, setTotalShips, setTodaysShips, setActivityData, activityData, projects, deleteprojectnames, setnewships}) => {
+ console.log(ships)
   const [editingIndex, setEditingIndex] = useState(null);
   const [editedText, setEditedText] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(null);
- 
+  //const [projects,setprojects]=useState([]);
+  const [selectedFilter, setSelectedFilter] = useState("All");
+  const [selectedships,setselectedships]=useState([]);
+  const githubToken=useSelector((state)=>state.githubtoken);
+  const [isVisible,setisVisible]=useState(!Boolean(githubToken));
+  const isSmallScreen = useMediaQuery('(max-width: 600px)');
+ useEffect(()=>{
+setselectedships(ships.ships);
+ },[ships])
  function formatDate(created_at){
  // console.log(created_at)
   const date = new Date(created_at);
@@ -86,7 +98,7 @@ const ShipList = ({ships, setShips, setTotalShips, setTodaysShips, setActivityDa
     setEditingIndex(null);
   };
 
-  const handleDelete = async(index) => {
+  const handleDelete = async(index, shipid) => {
     console.log(ships.ships[index]);
     const today = new Date().toISOString().split("T")[0];
     const isTodaysShip =
@@ -110,16 +122,18 @@ const ShipList = ({ships, setShips, setTotalShips, setTodaysShips, setActivityDa
     }
     setTotalShips((prev)=>prev-1);
     
-    setShips((prevShips) => {
-      // Create a copy of the previous ships array
-      const updatedShips = { ...prevShips, ships: [...prevShips.ships] };
-  
-      // Remove the ith element
-      updatedShips.ships.splice(index, 1);
-  
-      return updatedShips; // Return the updated ships object
-    });
-   
+    const shipindex=ships.ships.findIndex((data)=>data._id===shipid)
+    const updatedShips = {
+      ...ships,
+      ships: ships.ships.filter(ship => ship._id !== shipid) // Exclude the ship with the matching _id
+    };
+    if(selectedships.length===1)
+      deleteprojectnames(selectedFilter);
+    setShips(updatedShips);
+    setSelectedFilter("All");
+    console.log(ships.ships);
+    setselectedships(ships.ships);
+    
     try {
       const response=await fetch(`https://buildstack.onrender.com/ship/delete/${ships.ships[index]._id}`, {
         method:"DELETE"
@@ -127,12 +141,127 @@ const ShipList = ({ships, setShips, setTotalShips, setTodaysShips, setActivityDa
       const data=await response.json();
 
     } catch (error) {
+      console.log(error);
       
     }
     handleMenuClose();
   };
 
+  const handleprojectclick=(project)=>{
+    
+    if(project==='All'){
+      //console.log(ships.ships);
+      setselectedships(ships.ships);
+    }
+    else
+    {
+      setselectedships(ships.ships?.map((ship) => ship.project && ship.project.projectName === project ? ship : null).filter(Boolean));
+    }
+    setSelectedFilter(project);
+    
+  }
+
+  useEffect(()=>{
+    setselectedships(ships.ships);
+  },[ships])
+
   return (
+    <Box>
+      <Box sx={{ display: "flex",
+        flexDirection: "row",
+        gap: 2,
+        padding: 1,
+        justifyContent: "start",
+        alignItems: "center",
+        overflowX:'auto',
+        scrollbarWidth: "none", // For Firefox
+        "&::-webkit-scrollbar": {
+          display: "none", // For Chrome, Safari, and Edge
+        },}} >
+      <Button sx={{
+          padding: "4px 16px",
+          borderRadius: 2,
+          border: "2px solid",
+          borderColor: selectedFilter === "All" ? "#4a4a4a" : "#4a4a4a",
+          backgroundColor: selectedFilter === "All" ? "#4a4a4a" : "rgba(200, 200, 200, 0.2)",
+          color: selectedFilter === "All" ? "white" : "#6a6a6a",
+          cursor: "pointer",
+          "&:hover": {
+            backgroundColor: "#6a6a6a",
+            color: "white",
+          },
+          fontFamily:'k2d', fontSize:16, color:'white',
+           textTransform: "none"
+        }}
+        onClick={()=>{handleprojectclick('All')}}>
+          
+              All
+         
+          </Button>
+          {!githubToken && isSmallScreen &&  isVisible &&(
+             <Box sx={{  maxWidth: 'md', mx: 'auto' }}>
+             <Paper
+               sx={{
+                 display: 'flex',
+                 alignItems: 'center',
+                 justifyContent: 'space-between',
+                 padding: "4px 16px",
+                 border: 2,
+                 borderColor: 'warning.main',
+                 backgroundColor: 'warning.light',
+                 borderRadius: 1,
+                 '& .MuiIconButton-root:hover': {
+                   backgroundColor: 'warning.main',
+                   opacity: 0.4
+                 }
+               }}
+             >
+               <Typography 
+                 sx={{ 
+                   color: 'text.primary',
+                   //flex: 1,
+                   fontFamily:'k2d',
+                   fontSize:11
+                 }}
+               >
+                 Login using GitHub to get projects view
+               </Typography>
+               <IconButton
+                 onClick={() => setisVisible(false)}
+                 aria-label="Close"
+                 size="small"
+                 sx={{ ml: 2 }}
+               >
+                 <CloseIcon fontSize="small" />
+               </IconButton>
+             </Paper>
+           </Box>
+          )}
+          
+        {projects?.map((project, index)=>(
+          <Button sx={{
+            padding: "4px 16px",
+            borderRadius: 2,
+            border: "2px solid",
+            borderColor: selectedFilter === project ? "#4a4a4a" : "#4a4a4a",
+            backgroundColor: selectedFilter === project ? "#4a4a4a" : "rgba(200, 200, 200, 0.2)",
+            color: selectedFilter === project ? "white" : "#6a6a6a",
+            cursor: "pointer",
+            "&:hover": {
+              backgroundColor: "#6a6a6a",
+              color: "white",
+            },
+            fontFamily:'k2d', fontSize:16, color:'white',
+             textTransform: "none"
+          }}
+          onClick={()=>{handleprojectclick(project)}}>
+            
+              {project}
+     
+          </Button>
+        ))}
+
+      </Box>
     <List
     sx={{
       borderRadius: 2,
@@ -155,7 +284,7 @@ const ShipList = ({ships, setShips, setTotalShips, setTodaysShips, setActivityDa
       },
     }}
     >
-      {ships?.ships?.map((ship, index) => (
+      {selectedships?.map((ship, index) => (
         <Box
           key={index}
           sx={{
@@ -256,21 +385,13 @@ const ShipList = ({ships, setShips, setTotalShips, setTodaysShips, setActivityDa
        borderRadius:2
     }
   }}
-  // MenuProps={{
-  //   PaperProps: {
-  //     sx: {
-  //       backgroundColor: 'grey', // Set the menu's background color
-  //       padding: 0, // Remove padding around the menu
-  //       boxShadow: 'none', // Optional: Remove shadow for a flat look
-  //     },
-  //   },
-  // }}
+  
 >
   <MenuItem onClick={() => handleEdit(index)} sx={{ padding: '8px 16px', color:'white', display:"flex", flexDirection:'row' }}>
     <EditIcon sx={{marginRight:2}}/>
     Edit
   </MenuItem>
-  <MenuItem onClick={() => handleDelete(index)} sx={{  padding: '8px 16px', color:'red' }}>
+  <MenuItem onClick={() => handleDelete(index, ship._id)} sx={{  padding: '8px 16px', color:'red' }}>
   <DeleteIcon sx={{marginRight:2}}/>
     Delete
   </MenuItem>
@@ -280,6 +401,7 @@ const ShipList = ({ships, setShips, setTotalShips, setTodaysShips, setActivityDa
         </Box>
       ))}
     </List>
+    </Box>
   );
 };
 

@@ -4,7 +4,10 @@ const { Schema, model } = mongoose;
 
 // Define the User schema
 const userSchema = new Schema(
-  {
+  { githubId:{
+    type:String
+  },
+
     email: {
       type: String,
       required: true,
@@ -13,8 +16,11 @@ const userSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
+     // required: true,
       minlength: 6, // Ensure password is at least 6 characters long
+    },
+    lastLogin: {
+      type: Date,
     },
   },
   {

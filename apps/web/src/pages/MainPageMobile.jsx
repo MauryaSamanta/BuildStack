@@ -7,15 +7,20 @@ import ActivityChart from '../components/ActivityChart';
 import { useSelector } from 'react-redux';
 import Empty from "../assets/images/empty-folder.png";
 import SaveIcon from "../assets/images/bookmark.png"; 
+import ProjectsPage from '../components/Projects';
+import CreateMainLoader from '../components/CreateMainLoader';
 const MainPageMobile = () => {
   const isSmallScreen = useMediaQuery('(max-width: 768px)'); // Media query for phones and tablets
   const user=useSelector(state=>state.user);
   const token=useSelector(state=>state.token);
+ // console.log(token);
   const [ships,setShips]=useState([]);  
+  const [projects,setprojects]=useState([]);
    const [todaysShips,setTodaysShips]=useState(0);
    const [totalShips,setTotalShips]=useState(0);
    const [activityData,setActivityData]=useState([]);
    const [loading,setloading]=useState(false);
+   const [dataloading,setdataloading]=useState(false);
    const [formData, setFormData] = useState({
          userId: user.id,
          title: '',
@@ -27,18 +32,28 @@ const MainPageMobile = () => {
          setFormData({ ...formData, [name]: value });
        };
    useEffect(() => {
-     setloading(true);
+     setdataloading(true);
      const getships=async()=>{
        const response=await fetch(`https://buildstack.onrender.com/ship/getships/${user.id}`,{
          method:"GET",
        });
        const ships=await response.json();
        console.log(ships); 
-       setloading(false);
+       setdataloading(false);
        setShips(ships);
        setTodaysShips(ships.todaysShips);
        setTotalShips(ships.totalShips);
        setActivityData(ships.shipsPerDay);
+       const actships=ships.ships;
+       const projectNames = [
+        ...new Set(
+          actships
+            .filter(ship => ship.project)  // Filter out ships without a project
+            .map(ship => ship.project.projectName)
+        )
+      ];
+      
+      setprojects(projectNames);
      }
      getships();
    },[]);
@@ -80,38 +95,41 @@ const MainPageMobile = () => {
      setFormData({...formData, title:''});
  
    }
+    const [currentpage,setcurrentpage]=useState('home');
+    const togglepage=(nextpage)=>{  
+      setcurrentpage(nextpage);
+    }
+  const addnewprojectnames=(pname)=>{
+    if(!projects.includes(pname))
+    setprojects((prev)=>[...prev,pname]);
+  }
+  const deleteprojectnames=(pname)=>{
+    console.log(pname);
+    setprojects((prevProjects) => prevProjects.filter((project) => project !== pname));
+  }
 
-    // const activityData = [
-    //   { date: "Dec 24", value: 0 },
-    //   { date: "Dec 25", value: 0 },
-    //   { date: "Dec 26", value: 0 },
-    //   { date: "Dec 27", value: 0 },
-    //   { date: "Dec 28", value: 0 },
-    //   { date: "Dec 29", value: 1 },
-    //   { date: "Dec 30", value: 0 },
-    //   { date: "Dec 31", value: 0 },
-    //   { date: "Jan 1", value: 0 },
-    //   { date: "Jan 2", value: 3 },
-    //   { date: "Jan 3", value: 0 },
-    //   { date: "Jan 4", value: 0 },
-    //   { date: "Jan 5", value: 0 },
-    // ];
+  const setnewships=(ships)=>{
+    console.log(ships)
+    setShips(ships);
+  }
+
   return (
-    <Box
+    <>
+    {!dataloading?(<Box
       sx={{
         background: 'black',
         flex: 1,
         display: 'flex',
         flexDirection: 'column', // Switch to column for small screens
         justifyContent: 'center',
-        alignItems: 'flex-start',
+        alignItems: !isSmallScreen?'flex-start':'center',
         position: 'relative',
-        paddingLeft: isSmallScreen ? 2 : 15, // Adjust padding for small screens
-        paddingRight: isSmallScreen ? 2 : 15,
+        paddingLeft: isSmallScreen ? 1 : 15, // Adjust padding for small screens
+        paddingRight: isSmallScreen ? 1 : 15,
       }}
     >
-      <Navbar />
-      <Grid container spacing={isSmallScreen ? 2 : 4}>
+      <Navbar currentpage={currentpage} togglepage={togglepage}/>
+     {currentpage==='home'?( <Grid container spacing={isSmallScreen ? 2 : 4}>
         {/* Left Column: Textfield, Stats, and Chart */}
         <Grid item xs={12}>
           <Box sx={{ paddingTop: isSmallScreen ? 5 : 10 }}>
@@ -173,7 +191,7 @@ const MainPageMobile = () => {
             }}
           >
              <img src={SaveIcon} alt="Save" style={{width:20,height:20,marginRight:5}}/>
-            <Typography variant="button" sx={{ fontFamily: 'rubik' }}  onClick={user && token && !loading && saveShip}>
+            <Typography variant="button" sx={{ fontFamily: 'rubik' }}  onClick={user && token && !loading && formData.title && saveShip}>
             {user && token?( !loading?("Save!!"):(<CircularProgress size={20} color='black'/>)):("Sign up!!")}
             </Typography>
           </Button>
@@ -270,13 +288,13 @@ const MainPageMobile = () => {
                   fontFamily: 'k2d',
                   textAlign: 'left',
                   fontSize: 18,
-                  marginBottom: 2,
+                  marginBottom: 1,
                 }}
               >
                 Your Ships
               </Typography>
               <ShipList ships={ships} setShips={setShips} setTodaysShips={setTodaysShips} setTotalShips={setTotalShips} setActivityData={setActivityData}
-            activityData={activityData}/>
+            activityData={activityData} projects={projects} deleteprojectnames={deleteprojectnames} setnewships={setnewships}/>
             </Box>):ships?.ships?.length===0 && !loading?(
               <Box sx={{ maxHeight: '80vh', overflowY: 'auto', paddingTop: 5 }}>
               <Typography
@@ -301,8 +319,9 @@ const MainPageMobile = () => {
             )}
           </Grid>
         
-      </Grid>
-    </Box>
+      </Grid>):(<ProjectsPage  addnewprojectname={addnewprojectnames} activityData={activityData} setActivityData={setActivityData} setShips={setShips} setTodaysShips={setTodaysShips} setTotalShips={setTotalShips}/>)} 
+    </Box>):(<CreateMainLoader/>)}
+    </>
   );
 };
 

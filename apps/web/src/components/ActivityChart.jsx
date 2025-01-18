@@ -37,7 +37,7 @@ const ActivityChart = ({ data }) => {
 
     // Draw axes
     const xAxis = d3.axisBottom(x).tickSizeOuter(0);
-    const yAxis = d3.axisLeft(y).ticks(3).tickFormat((d) => (d === 0 ? "" : d));;
+    const yAxis = d3.axisLeft(y).ticks(3).tickFormat((d) => (Number.isInteger(d) && d !== 0 ? d : ""));
 
     svg
       .append("g")
@@ -82,7 +82,7 @@ const ActivityChart = ({ data }) => {
       .append("path")
       .datum(data)
       .attr("fill", "none")
-      .attr("stroke", "white")
+      .attr("stroke", "#635acc")
       .attr("stroke-width", 2)
       .attr("d", line);
 
@@ -95,7 +95,7 @@ const ActivityChart = ({ data }) => {
       .attr("cx", (d) => x(d.date) || 0)
       .attr("cy", (d) => y(d.value))
       .attr("r", 5)
-      .attr("fill", "white")
+      .attr("fill", "#635acc")
       .attr("stroke", theme.palette.grey[900])
       .attr("stroke-width", 2);
   }, [data, theme]);

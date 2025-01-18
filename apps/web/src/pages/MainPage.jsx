@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, TextField, Button, Grid, Paper } from '@mui/material';
+import { Box, Typography, TextField, Button, Grid, Paper, IconButton } from '@mui/material';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ShipList from '../components/ShipList';  // Assuming ShipList is a component that lists ships.
 import Navbar from '../components/Navbar';
@@ -8,9 +8,20 @@ import { useSelector } from 'react-redux';
 import Empty from "../assets/images/empty-folder.png";
 import { CircularProgress } from '@mui/material';
 import SaveIcon from "../assets/images/bookmark.png";
+import ProjectsPage from '../components/Projects';
+import CreateRepoLoader from '../components/CreateRepoLoader';
+import CreateMainLoader from '../components/CreateMainLoader';
+import CloseIcon from '@mui/icons-material/Close';
+
 const MainPage = () => {
   const user = useSelector((state)=>state.user);
   const token = useSelector((state)=>state.token);
+  const githubToken=useSelector((state)=>state.githubtoken);
+  const [projects,setprojects]=useState([]);
+  const [currentpage,setcurrentpage]=useState('home');
+  const togglepage=(nextpage)=>{  
+    setcurrentpage(nextpage);
+  }
    const [formData, setFormData] = useState({
       userId: user.id,
       title: '',
@@ -27,22 +38,36 @@ const MainPage = () => {
   const [totalShips,setTotalShips]=useState(0);
   const [activityData,setActivityData]=useState([]);
   const [loading,setloading]=useState(false);
+  const [dataloading,setdataloading]=useState(false);
+  const [showmsg,setshowmsg]=useState(Boolean(githubToken));
   useEffect(() => {
-    setloading(true);
+    setdataloading(true);
     const getships=async()=>{
       const response=await fetch(`https://buildstack.onrender.com/ship/getships/${user.id}`,{
         method:"GET",
       });
       const ships=await response.json();
       console.log(ships); 
-      setloading(false);
+      setdataloading(false);
       setShips(ships);
       setTodaysShips(ships.todaysShips);
       setTotalShips(ships.totalShips);
       setActivityData(ships.shipsPerDay);
+      const actships=ships.ships;
+       const projectNames = [
+        ...new Set(
+          actships
+            .filter(ship => ship.project)  // Filter out ships without a project
+            .map(ship => ship.project.projectName)
+        )
+      ];
+      
+      setprojects(projectNames);
     }
+
     getships();
   },[]);
+
 
   const saveShip=async()=>{
     setloading(true);
@@ -82,28 +107,42 @@ const MainPage = () => {
 
   }
 
+  const addnewprojectnames=(pname)=>{
+    if(!projects.includes(pname))
+    setprojects((prev)=>[...prev,pname]);
+  }
+  const deleteprojectnames=(pname)=>{
+    setprojects((prevProjects) => prevProjects.filter((project) => project !== pname));
+  }
+
+  const setnewships=(ships)=>{
+    //console.log(ships)
+    setShips(ships);
+  }
+
   return (
-    <Box
+    <>
+    {!dataloading?(<Box
       sx={{
         background: "black",
-        //height: "100vh",
         flex:1,
         display: "flex",
         flexDirection: "row",
         justifyContent: "center",
-        alignItems: "flex-start", // Align to top
-        // /textAlign: "center",
+        alignItems: "flex-start", 
         position: "relative",
        paddingLeft:15,
        paddingRight:15,
        
       }}
     >
-        <Navbar/>
-      <Grid container spacing={4}>
+        <Navbar currentpage={currentpage} togglepage={togglepage}/>
+      
+      {currentpage==='home'?(<Grid container spacing={4}>
         {/* Left Column: Textfield and Stats */}
         <Grid item xs={12} md={6}>
           <Box sx={{ paddingTop: 10 }}>
+            
           <Typography variant="h5" sx={{ color: '#ffffff', fontFamily: "k2d", textAlign: 'left', fontSize: 18, marginBottom:2 }}>What did you ship today?</Typography>
             <TextField
               variant="outlined"
@@ -149,12 +188,14 @@ const MainPage = () => {
                 },
                 marginTop: 2, // Adjust space between button and textfield
               }}
+              onClick={user && token && !loading && formData.title && saveShip}
             >
               <img src={SaveIcon} alt="Save" style={{width:20,height:20,marginRight:5}}/>
-              <Typography variant="button" sx={{ fontFamily: "rubik" }} onClick={user && token && !loading && saveShip}>
+              <Typography variant="button" sx={{ fontFamily: "rubik" }}>
                {user && token?( !loading?("Save!!"):(<CircularProgress size={20} color='black'/>)):("Sign up!!")}
               </Typography>
             </Button>
+            
           <Box sx={{ display: 'flex', flexDirection: 'row', paddingTop: 5, justifyContent: 'center' }}>
             <Paper sx={{ marginRight: 10, backgroundColor: '#1e1e1e', borderRadius: 4, padding: 3, width: 350, height: 100 }} elevation={3}>
               <Typography variant="h5" sx={{ color: '#ffffff', fontFamily: "k2d", textAlign: 'left', fontSize: 15 }}>Today's ships</Typography>
@@ -176,7 +217,7 @@ const MainPage = () => {
             <Typography variant="h5" sx={{ color: '#ffffff', fontFamily: "k2d", textAlign: 'left', fontSize: 18, marginBottom:2 }}>Your Ships</Typography>
             {/* Ship List should be scrollable */}
             <ShipList ships={ships} setShips={setShips} setTodaysShips={setTodaysShips} setTotalShips={setTotalShips} setActivityData={setActivityData}
-            activityData={activityData}/>
+            activityData={activityData} projects={projects} deleteprojectnames={deleteprojectnames} setnewships={setnewships}/>
           </Box>):!loading && ships?.ships?.length===0?(
             <Box sx={{ maxHeight: '80vh', overflowY: 'auto', paddingTop: 5, marginTop:5}}>
              <Typography variant="h5" sx={{ color: '#ffffff', fontFamily: "k2d", textAlign: 'left', fontSize: 18, marginBottom:2 }}>Your Ships</Typography>
@@ -188,7 +229,10 @@ const MainPage = () => {
           ):(<CircularProgress color='grey' thickness={5} size={30}/>)}
         </Grid>
       </Grid>
-    </Box>
+    ):(
+    <ProjectsPage addnewprojectname={addnewprojectnames} activityData={activityData} setActivityData={setActivityData} setShips={setShips} setTodaysShips={setTodaysShips} setTotalShips={setTotalShips}/>)}
+    </Box>):(<CreateMainLoader/>)}
+    </>
   );
 };
 
