@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Box, Typography, useMediaQuery } from "@mui/material";
+import { Box, Typography, useMediaQuery, useTheme } from "@mui/material";
 import lightImage from "../assets/images/lighthouse.png";
 
 const CreateMainLoader = () => {
@@ -26,6 +26,7 @@ const CreateMainLoader = () => {
     "Your future self will thank you for the time you spend coding today.",
     "Don’t compare your Chapter 1 to someone else’s Chapter 20. Keep coding",
   ];
+   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down("sm"));
 
   useEffect(() => {
