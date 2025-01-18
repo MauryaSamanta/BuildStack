@@ -81,7 +81,7 @@ const AuthPage = () => {
 
   const handlegithub = () => {
     const GITHUB_CLIENT_ID = "Ov23linkw39HN1VwNk18";
-    const REDIRECT_URI = 'http://localhost:5173/callback';
+    const REDIRECT_URI = 'http://www.buildstack.online/callback';
     
     // GitHub OAuth URL
     const githubUrl = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=user:email,repo`;
