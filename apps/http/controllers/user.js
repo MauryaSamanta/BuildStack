@@ -113,6 +113,7 @@ export const githubLogin = async (req, res) => {
       },
       method:"GET",
     });
+   // console.log(emailResponse);
     const returneduser=await userResponse.json();
     const returnedemail=await emailResponse.json(); 
     const userData = returneduser;

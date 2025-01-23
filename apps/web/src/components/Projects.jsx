@@ -179,7 +179,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
     );
    setNewGoal({userid:null,text:null,projectid:null, diff:null});
     try {
-      const response=await fetch('https://buildstack.onrender.com/projects/addgoal',{
+      const response=await fetch('http://localhost:3000/projects/addgoal',{
         method:"POST",
         body:JSON.stringify(data),
         headers:{"Content-Type":"application/json"}
@@ -198,7 +198,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
       
       const data={userid:user.id, githubusername:user.username, githubToken:githubtoken};
       setloading(true);
-      const response=await fetch('https://buildstack.onrender.com/projects/getproj',{
+      const response=await fetch('http://localhost:3000/projects/getproj',{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(data)
@@ -242,7 +242,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
             return project;
         })
     );
-      const response=await fetch('https://buildstack.onrender.com/projects/compgoal',{
+      const response=await fetch('http://localhost:3000/projects/compgoal',{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(data)
@@ -279,7 +279,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
   const fetchRepoStructure = async (repoName) => {
     setrepoloading(true);
    try {
-      const response = await fetch(`https://buildstack.onrender.com/projects/getrepostruct`,{
+      const response = await fetch(`http://localhost:3000/projects/getrepostruct`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -288,7 +288,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
           accessToken:githubtoken
         })
       });
-      const response2 = await fetch(`https://buildstack.onrender.com/projects/getrepocontents`,{
+      const response2 = await fetch(`http://localhost:3000/projects/getrepocontents`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -486,8 +486,8 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                     }}
                   >
                     {project.latestCommit ?
-                   `last commit: ${project.latestCommit.length > 25 ? 
-                   project.latestCommit.slice(0, 25) + "..." : 
+                   `last commit: ${project.latestCommit.length > 15 ? 
+                   project.latestCommit.slice(0, 15) + "..." : 
                    project.latestCommit}` : `no commits yet`}
                   </Typography>
                   </Box>

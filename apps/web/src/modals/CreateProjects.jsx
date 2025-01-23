@@ -41,7 +41,7 @@ const ProjectSetupModal = ({ open, onClose, addprojects, projects }) => {
     setloading(true);
     try {
       let data = { userid: user.id, projectName, repoName, repoType: isPublic, githubtoken, selectedrepo };
-      const response = await fetch(!selectedrepo?'https://buildstack.onrender.com/projects/createproj':'https://buildstack.onrender.com/projects/createprojimport', {
+      const response = await fetch(!selectedrepo?'http://localhost:3000/projects/createproj':'http://localhost:3000/projects/createprojimport', {
         method: "POST",
         body: JSON.stringify(data),
         headers: {
@@ -71,7 +71,7 @@ const ProjectSetupModal = ({ open, onClose, addprojects, projects }) => {
     const getallrepos=async()=>{
       const data={username:user.username, accessToken:githubtoken};
       try {
-        const response=await fetch('https://buildstack.onrender.com/projects/getrepos',{
+        const response=await fetch('http://localhost:3000/projects/getrepos',{
           method:"POST",
           headers:{"content-Type":"application/json"},
           body:JSON.stringify(data)
