@@ -101,7 +101,7 @@ const difficultyLevels = [
     setShips(updatedShips);
     
     try {
-      const response=await fetch(`http://localhost:3000/ship/edit/${ships.ships[index]._id}`, {
+      const response=await fetch(`https://buildstack.onrender.com/ship/edit/${ships.ships[index]._id}`, {
         method:"PUT",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({title:editedText})
@@ -152,7 +152,7 @@ const difficultyLevels = [
     setselectedships(ships.ships);
     
     try {
-      const response=await fetch(`http://localhost:3000/ship/delete/${ships.ships[index]._id}`, {
+      const response=await fetch(`https://buildstack.onrender.com/ship/delete/${ships.ships[index]._id}`, {
         method:"DELETE"
       });
       const data=await response.json();

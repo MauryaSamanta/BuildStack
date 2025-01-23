@@ -75,7 +75,7 @@ const Callback = () => {
           return;
         }
 
-        const response = await fetch('http://localhost:3000/user/v1/githublogin', {
+        const response = await fetch('https://buildstack.onrender.com/user/v1/githublogin', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
