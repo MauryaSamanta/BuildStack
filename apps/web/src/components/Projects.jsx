@@ -52,6 +52,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
  const [level,setlevel]=useState(0);
   const dispatch=useDispatch();
   const toggleCollapse = (projectId) => {
+    setrepoloading(false);
     setCollapsedRepos((prev)=>({
       ...prev,
       [projectId]:false
@@ -65,6 +66,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
   const toggleCollapseRepo = (projectId) => {
     if(collapsedRepo[projectId]===true){
       setRepoData(null);
+      setrepoloading(false);
     }
     setCollapsedRepos((prev) => ({
       ...prev,

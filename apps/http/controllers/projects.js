@@ -329,11 +329,12 @@ export const getrepostruct = async (req, res) => {
       const data = await response.json();
 
       if (data && data.tree) {
-          const files = data.tree.map(item => ({
-              path: item.path,
-              type: item.type
-          }));
-          
+        const files = data.tree
+        .filter(item => item.path !== 'node_modules')
+        .map(item => ({
+            path: item.path,
+            type: item.type
+        }));
           res.json( files  || []);
       } else {
           res.status(404).json({ 
