@@ -11,6 +11,9 @@ const shipSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  diff:{
+    type:String
+  },
   project:{
     type:mongoose.Schema.Types.ObjectId,
     ref:'Project'

@@ -61,6 +61,23 @@ setselectedships(ships.ships);
   // Construct the formatted date string
   return `${day}${suffix} ${month}, ${year} ${formattedHours}:${formattedMinutes} ${period}`;
 }
+const difficultyLevels = [
+  {
+    name: "easy",
+    backgroundColor: "#e0f2e9",  // Light green
+    textColor: "#2e7d32"        // Medium-dark green
+  },
+  {
+    name: "medium",
+    backgroundColor: "#fff3e0",  // Light orange
+    textColor: "#ed6c02"        // Medium-dark orange
+  },
+  {
+    name: "hard",
+    backgroundColor: "#feecec",  // Light red
+    textColor: "#d32f2f"        // Medium-dark red
+  }
+];
   const handleMenuClick = (event, index) => {
     setAnchorEl(event.currentTarget);
     setSelectedIndex(index);
@@ -298,6 +315,7 @@ setselectedships(ships.ships);
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            
           }}
         >
           {editingIndex === index ? (
@@ -355,12 +373,13 @@ setselectedships(ships.ships);
             </Box>
           ) : (
             <>
-            <Box>
+            <Box sx={{flexGrow:1}}>
               <Typography
                // primary=
                 sx={{
                   color: '#ffffff',
                   fontFamily: 'k2d',
+              
                 }}
               >{ship.title}</Typography>
               <Typography
@@ -368,10 +387,24 @@ setselectedships(ships.ships);
                 sx={{
                   color: 'grey',
                   fontFamily: 'rubik',
-                  fontSize:12
+                  fontSize:12,
+            
                 }}
               >{formatDate(ship.createdAt)}</Typography>
               </Box>
+                {ship.diff && <Typography
+               sx={{
+                 backgroundColor: difficultyLevels[ship.diff].backgroundColor,
+                 color: difficultyLevels[ship.diff].textColor,
+                 fontWeight: 700,
+                 padding: '2px 6px',
+                 borderRadius: 2,
+             
+                 fontFamily:'k2d'
+               }}
+              >
+               {difficultyLevels[ship.diff].name}
+              </Typography>}
               <IconButton
                 onClick={(event) => handleMenuClick(event, index)}
                 sx={{ color: '#ffffff' }}

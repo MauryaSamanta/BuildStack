@@ -40,6 +40,7 @@ const projectSchema = new mongoose.Schema({
         ref: 'User', 
       },
       text:{type:String},
+      diff:{type:String}
       
     }
   ]

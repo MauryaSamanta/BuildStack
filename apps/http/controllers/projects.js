@@ -138,11 +138,11 @@ export const createProjectwithImport = async (req, res) => {
 }
 
 export const addgoalstoprojects=async(req,res)=>{
-  const {userid, text, projectid}=req.body;
-  console.log(req.body)
+  const {userid, text,diff, projectid}=req.body;
+  //console.log(req.body)
   try {
     let project=await Project.findById(projectid);
-    project.goals.push({addedBy:userid, text:text});
+    project.goals.push({addedBy:userid, text:text,diff:diff});
     await project.save();
     res.status(200).json(project);
   } catch (error) {
@@ -154,7 +154,7 @@ export const addgoalstoprojects=async(req,res)=>{
 
 export const completegoal=async(req,res)=>{
   try {
-    const { userid,projectid, text } = req.body;
+    const { userid,projectid, text, diff } = req.body;
     console.log(req.body);
     // Find the project and pull (delete) the goal with matching text
     const project = await Project.findByIdAndUpdate(
@@ -174,7 +174,8 @@ export const completegoal=async(req,res)=>{
     let newShip = new Ship({
           userId:userid,
           title:text,
-          project:projectid
+          project:projectid,
+          diff:diff
         });
 
     //console.log(newShip);
@@ -305,4 +306,172 @@ export const getuserrepos=async(req,res)=>{
         console.log(error);
   }
 }
+
+export const getrepostruct = async (req, res) => {
+  try {
+      const { owner, repo, accessToken } = req.body;
+      
+      const response = await fetch(
+          `https://api.github.com/repos/${owner}/${repo}/git/trees/main?recursive=1`,
+          {
+              method: 'GET',
+              headers: {
+                  'Authorization': `Bearer ${accessToken}`,
+                  'Accept': 'application/vnd.github.v3+json'
+              }
+          }
+      );
+
+      if (!response.ok) {
+          throw new Error(`GitHub API responded with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data && data.tree) {
+          const files = data.tree.map(item => ({
+              path: item.path,
+              type: item.type
+          }));
+          
+          res.json( files  || []);
+      } else {
+          res.status(404).json({ 
+              success: false, 
+              message: 'Repository structure not found' 
+          });
+      }
+  } catch (error) {
+      console.error('Error fetching repo structure:', error);
+      res.status(500).json({ 
+          success: false, 
+          message: error.message || 'Failed to fetch repository structure' 
+      });
+  }
+};
+
+export const getFormattedRepoContents=async(req, res)=>{
+  try {
+      const { repoName, username, accessToken } = req.body;
+      const baseUrl = `https://api.github.com/repos/${username}/${repoName}/contents`;
+      
+      // Function to fetch file content
+      async function getFileContent(path) {
+          const response = await fetch(`${baseUrl}/${path}`, {
+              headers: {
+                  'Accept': 'application/vnd.github.v3.raw',
+                  // Add your GitHub token here if needed
+                  'Authorization': `Bearer ${accessToken}`,
+              }
+          });
+          
+          if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          return await response.text();
+      }
+
+      // Function to process directory contents recursively
+      async function processDirectory(path = '') {
+          const response = await fetch(`${baseUrl}${path}`, {
+              headers: {
+                  'Accept': 'application/vnd.github.v3+json',
+                 'Authorization': `Bearer ${accessToken}`,
+              }
+          });
+
+          if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          let formattedContent = '';
+          
+          for (const item of data) {
+              if (item.type === 'file') {
+                  // Skip very large files
+                  if (item.size > 1000000) {
+                      formattedContent += `---------------------\n`;
+                      formattedContent += `${item.path}\n`;
+                      formattedContent += `---------------------\n`;
+                      formattedContent += `[File skipped: File too large (${Math.round(item.size/1024)}KB)]\n\n`;
+                      continue;
+                  }
+
+                  // Skip likely binary files
+                  if (isBinaryFile(item.name)) {
+                      formattedContent += `---------------------\n`;
+                      formattedContent += `${item.path}\n`;
+                      formattedContent += `---------------------\n`;
+                      formattedContent += `[File skipped: Likely binary file]\n\n`;
+                      continue;
+                  }
+
+                  try {
+                      const content = await getFileContent(item.path);
+                      formattedContent += `---------------------\n`;
+                      formattedContent += `${item.path}\n`;
+                      formattedContent += `---------------------\n`;
+                      formattedContent += `${content}\n\n`;
+                  } catch (error) {
+                      console.error(`Error fetching ${item.path}:`, error.message);
+                      formattedContent += `[Error fetching file content]\n\n`;
+                  }
+              } else if (item.type === 'dir') {
+                  formattedContent += await processDirectory('/' + item.path);
+              }
+          }
+          
+          return formattedContent;
+      }
+
+      // Helper function to check if file is likely binary
+      function isBinaryFile(filename) {
+          // Common binary file extensions
+          const binaryExtensions = new Set([
+              // Images
+              'png', 'jpg', 'jpeg', 'gif', 'ico', 'webp', 'bmp', 'tiff',
+              // Documents
+              'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
+              // Archives
+              'zip', 'tar', 'gz', 'rar', '7z',
+              // Executables
+              'exe', 'dll', 'so', 'dylib',
+              // Media
+              'mp3', 'mp4', 'avi', 'mov', 'wav', 'flac',
+              // Other binary formats
+              'ttf', 'otf', 'woff', 'woff2', 'eot'
+          ]);
+
+          // Get the file extension (everything after the last dot)
+          const extension = filename.split('.').pop()?.toLowerCase();
+          
+          // If there's no extension or it's not in our binary list, assume it's a text file
+          if (!extension || !binaryExtensions.has(extension)) {
+              return false;
+          }
+          
+          return true;
+      }
+
+      // Get formatted content
+      const formattedContent = await processDirectory();
+      
+      // Send response
+      res.status(200).json({
+          success: true,
+          data: formattedContent
+      });
+
+  } catch (error) {
+      console.error('Error:', error.message);
+      res.status(500).json({
+          success: false,
+          error: 'Failed to fetch repository contents',
+          details: error.message
+      });
+  }
+}
+
 

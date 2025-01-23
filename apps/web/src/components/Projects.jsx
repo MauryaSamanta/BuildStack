@@ -9,6 +9,7 @@ import {
   useMediaQuery,
   useTheme,
   Collapse,
+  CircularProgress,
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
@@ -25,11 +26,17 @@ import noprojIcon from "../assets/images/startup.png";
 import CreateRepoLoader from "./CreateRepoLoader";
 import ProjectsLoader from "./ProjectsLoader";
 import GitHubIcon from '@mui/icons-material/GitHub';
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import RepoTreeDisplay from "./RepoStructure";
+import RepoContents from "./RepoContentsDisplay";
 const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,setTodaysShips,setTotalShips}) => {
   const [projects, setProjects] = useState([ ]);
+  const [repoData, setRepoData] = useState(null);
   const [newGoal, setNewGoal] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [collapsedProjects, setCollapsedProjects] = useState([]);
+  const [collapsedRepo, setCollapsedRepos] = useState([]);
   const theme = useTheme();
   const user=useSelector((state)=>state.user);
   console.log(user)
@@ -41,9 +48,25 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
   const [addinggoal,setaddinggoal]=useState(-1);
   const [criteria,setcriteria]=useState(0);  
  const [loading,setloading]=useState(false);
+ const [repoloading, setrepoloading]=useState(false);
+ const [level,setlevel]=useState(0);
   const dispatch=useDispatch();
   const toggleCollapse = (projectId) => {
+    setCollapsedRepos((prev)=>({
+      ...prev,
+      [projectId]:false
+    }))
+    setRepoData(null);
     setCollapsedProjects((prev) => ({
+      ...prev,
+      [projectId]: !prev[projectId],
+    }));
+  };
+  const toggleCollapseRepo = (projectId) => {
+    if(collapsedRepo[projectId]===true){
+      setRepoData(null);
+    }
+    setCollapsedRepos((prev) => ({
       ...prev,
       [projectId]: !prev[projectId],
     }));
@@ -55,6 +78,23 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
    "Highest Unachieved Goals" ,
   "Oldest Projects" ,
    "Newest Projects" 
+  ];
+  const difficultyLevels = [
+    {
+      name: "easy",
+      backgroundColor: "#e0f2e9",  // Light green
+      textColor: "#2e7d32"        // Medium-dark green
+    },
+    {
+      name: "medium",
+      backgroundColor: "#fff3e0",  // Light orange
+      textColor: "#ed6c02"        // Medium-dark orange
+    },
+    {
+      name: "hard",
+      backgroundColor: "#feecec",  // Light red
+      textColor: "#d32f2f"        // Medium-dark red
+    }
   ];
 
   const handlecriteriachange=()=>{
@@ -120,8 +160,11 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
   }
 
   const addgoal=async()=>{
-   
-    const data={userid:user.id, text:newGoal.text, projectid:newGoal.projectid};
+    setNewGoal(newGoal => ({
+      ...newGoal,
+      diff: level
+     }));
+    const data={userid:user.id, text:newGoal.text, projectid:newGoal.projectid, diff:level};
     setProjects((prevProjects) =>
       prevProjects.map((project) =>
         project._id === newGoal.projectid
@@ -132,7 +175,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
           : project
       )
     );
-   setNewGoal({userid:null,text:null,projectid:null});
+   setNewGoal({userid:null,text:null,projectid:null, diff:null});
     try {
       const response=await fetch('https://buildstack.onrender.com/projects/addgoal',{
         method:"POST",
@@ -150,6 +193,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
 
   useEffect(()=>{
     const getprojects=async()=>{
+      
       const data={userid:user.id, githubusername:user.username, githubToken:githubtoken};
       setloading(true);
       const response=await fetch('https://buildstack.onrender.com/projects/getproj',{
@@ -183,7 +227,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
 
   const completegoal=async(goal,projectid, projectname)=>{
     const text=goal.text;
-    const data={userid:user.id,projectid,text:goal.text};
+    const data={userid:user.id,projectid,text:goal.text, diff:goal.diff};
     try {
       setProjects(prevProjects => 
         prevProjects.map(project => {
@@ -230,6 +274,43 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
     }
   }
 
+  const fetchRepoStructure = async (repoName) => {
+    setrepoloading(true);
+   try {
+      const response = await fetch(`https://buildstack.onrender.com/projects/getrepostruct`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          owner:user.username,
+          repo:repoName,
+          accessToken:githubtoken
+        })
+      });
+      const response2 = await fetch(`https://buildstack.onrender.com/projects/getrepocontents`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          username:user.username,
+          repoName:repoName,
+          accessToken:githubtoken
+        })
+      });
+      const data2=await response2.json();
+      const data = await response.json();
+      setrepoloading(false);
+     // console.log(data)
+      if (data && data2) {
+        // Transform the flat file structure into a tree
+        //const tree = transformToTree(data);
+        setRepoData({data:data, name:repoName, contents:data2.data});
+      } else {
+        setError(data);
+      }
+    } catch (err) {
+      
+    } 
+  };
+
  return (
     <Box
       sx={{
@@ -238,7 +319,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
         minHeight: "100vh",
         fontFamily: "K2D",
         paddingTop: 10,
-        width:isSmallScreen ?"100%":"50%", 
+        width:isSmallScreen ?"100%":"70%", 
       }}
     >
       <Typography sx={{fontFamily:'k2d', textAlign:'center', fontSize:!isSmallScreen?70:40, marginBottom:3}}>
@@ -283,7 +364,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
           onChange={(e) => setSearchQuery(e.target.value)}
           autoComplete="off"
           sx={{
-            width: isSmallScreen ? "100%" : "50%",
+            width: isSmallScreen ? "100%" : "40%",
             backgroundColor: "white",
             borderRadius: 2,
             "& .MuiOutlinedInput-root": {
@@ -321,7 +402,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
           //startIcon={<AddCircleOutlineIcon />}
           sx={{
             backgroundColor: "white",
-            width: isSmallScreen ? "100%" : "50%",
+            width: isSmallScreen ? "100%" : "40%",
             color: "black",
             fontWeight: 700,
             fontSize: 12,
@@ -354,6 +435,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
       <Grid
         container
         spacing={3}
+
         sx={{
           flexDirection: isSmallScreen ? "column" : "row",
         }}
@@ -434,7 +516,8 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                         display: "flex",
                         alignItems: "center",
                         marginBottom: 1,
-                        gap:1
+                        gap:1,
+                       
                       }}
                     >
                       <TextField
@@ -472,8 +555,34 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                             }
                           }
                         }}
+                        InputProps={{
+                          endAdornment: (
+                            <Button
+                              sx={{
+                                backgroundColor: difficultyLevels[level].backgroundColor,
+                                color: difficultyLevels[level].textColor,
+                                fontWeight: 700,
+                                fontSize: 12,
+                                fontFamily: "K2D",
+                                height: 28,  // Slightly reduced height to fit inside TextField
+                                pl:1,
+                                minWidth: 'fit-content',
+                                mr: -1,     // Negative margin to adjust position
+                                '&:hover': {
+                                  backgroundColor: difficultyLevels[level].backgroundColor,
+                                }
+                              }}
+                              onClick={() => {
+                                setlevel((prev) => (prev + 1) % 3);
+                              }}
+                            >
+                              {difficultyLevels[level].name}
+                            </Button>
+                          )
+                        }}
                         
                       />
+                     
                       <Button
           variant="contained"
          
@@ -501,27 +610,52 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                         key={index}
                         sx={{
                           display: "flex",
-                          alignItems: "center",
+                          alignItems: "stretch",
                           justifyContent: "space-between",
                           //padding: "10px",
                           backgroundColor: "#292929",
                           borderRadius: "5px",
                           marginBottom: 0.5,
-                          height:60,
+                          //height:60,
+                          minHeight:60,
                           boxShadow: '0px 3px 6px rgba(0, 0, 0, 0.16)'
                         }}
                       >
+                        <Box sx={{ display: 'flex',
+     flexDirection: 'row',
+     alignItems: 'center',
+     padding: '10px 0',
+     
+     flex: 1,
+     minWidth: 0}}>
+                         {goal.diff && (
+ <Box 
+   sx={{
+     width: '12px',
+     height: '12px',
+     borderRadius: '50%',
+     backgroundColor: difficultyLevels[goal.diff].textColor,
+     flexShrink: 0,
+     ml:1
+   }}
+ />
+)}
                         <Typography
-                          sx={{ fontFamily: "K2D", fontSize: "17px",marginLeft:"10px" }}
+                          sx={{   fontFamily: "K2D",
+                            fontSize: "17px",
+                            marginLeft: "10px",
+                            wordBreak: 'break-word',
+                            overflowWrap: 'break-word'}}
                         >
                           {goal.text}
                         </Typography>
+                       </Box>
                         <Button
                           onClick={() => completegoal(goal,project._id, project.projectName)}
                           sx={{
                             color: "white",
                             backgroundColor: "#50C878",
-                            height:'100%',
+                            minHeight:'100%',
                             borderRadius:0,
                             borderTopRightRadius:"5px",
                             borderBottomRightRadius:"5px",  
@@ -532,11 +666,35 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                         </Button>
                       </Box>
                     ))}
-                      {project.repoName && <Button startIcon={<GitHubIcon sx={{color:'white'}}/>} 
-                     sx={{ textTransform: 'none' }}
-                     onClick={() => window.open(`https://github.com/${user.username}/${project.repoName}`, '_blank')} >
+                     {project.repoName && (
+                      <Box sx={{padding:1}}>
+                        <Box sx={{display:'flex', flexDirection:'row'}}>
+                        <Typography sx={{color:'white', fontFamily:'k2d', fontSize:15}} onClick={()=>toggleCollapseRepo(project._id)}>repository details</Typography>
+                        {collapsedRepo[project._id] ? (
+                    <KeyboardArrowDownIcon sx={{ color: "white" }} />
+                  ) : (
+                    <KeyboardArrowRightIcon sx={{ color: "white" }} />
+                  )}
+                        </Box>
+                       <Collapse in={collapsedRepo[project._id]}>
+                       <Box sx={{display:'flex', flexDirection:'row', justifyContent:'space-between', marginTop:1}}>
+                      <Button startIcon={<GitHubIcon sx={{color:'white'}}/>} 
+                     sx={{ textTransform: 'none' }} 
+                     onClick={() => window.open(`https://github.com/${user.username}/${project.repoName}`, '_blank')}>
                      <Typography sx={{fontFamily:'k2d', color:'white', fontSize:15}}>{project.repoName}</Typography>
-                    </Button>}
+                    </Button>
+                    <Button sx={{ textTransform: 'none', backgroundColor:'lightgrey' }} onClick={()=>{if(!repoloading)fetchRepoStructure(project.repoName)}}>
+                     {!repoloading?<Typography sx={{fontFamily:'k2d', color:'black', fontSize:15, fontWeight:'bold'}}>browse repo</Typography>:
+                     <CircularProgress size={20} color='black'/>}
+                    </Button>
+                    </Box>
+                    {repoData?.data.length>0 && repoData?.name && <RepoTreeDisplay files={repoData.data} repoName={repoData.name} contents={repoData.contents}/>}
+                    {repoData?.contents && <RepoContents contents={repoData.contents}/>}
+                    {repoData?.data.length===0 && <Typography sx={{color:'white', fontFamily:'k2d'}}>seems your repo is empty</Typography>}
+                    </Collapse>
+                    </Box>
+                    )}
+
                   </Box>
                 </Collapse>
               </Box>
@@ -548,8 +706,9 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
           padding: 0.5,
           boxShadow: "0 4px 10px rgba(255, 255, 255, 0.1)",
           width: "100%", // Ensure box takes full width of grid item
-          minWidth: "300px", // Add maximum width to prevent excessive stretching
+          minWidth: "350px", // Add maximum width to prevent excessive stretching
           overflowY:'auto',
+          
           '&::-webkit-scrollbar': {
             width: '3px', // Width of the scrollbar
           },
@@ -572,7 +731,8 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                     alignItems: "center",
                     justifyContent: "space-between",
                     cursor: "pointer",
-                    paddingLeft:1
+                    paddingLeft:1,
+                    
                   }}
                   onClick={() => toggleCollapse(project._id)}
                 >
@@ -667,6 +827,23 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                           }
                         }}
                       />
+                      <Button
+           sx={{
+            backgroundColor: difficultyLevels[level].backgroundColor,  // Light green background
+            color: difficultyLevels[level].textColor,           // Darker green text
+            fontWeight: 700,
+            fontSize: 12,
+            fontFamily: "K2D",
+            height: 35,
+            borderRadius:5,
+            
+          }}
+          onClick={()=>{
+            setlevel((prev)=>(prev+1)%3);
+          }}
+        >
+          {difficultyLevels[level].name}
+        </Button>
                         <Button
           //variant="contained"
           //startIcon={<AddCircleOutlineIcon />}
@@ -703,10 +880,23 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                         }}
                       >
                         <Typography
-                          sx={{ fontFamily: "K2D", fontSize: "17px", marginLeft: "10px" }}
+                          sx={{ fontFamily: "K2D", fontSize: "17px", marginLeft: "10px", flexGrow:1}}
                         >
                           {goal.text}
                         </Typography>
+                        {goal.diff && <Typography
+ sx={{
+   backgroundColor: difficultyLevels[goal.diff].backgroundColor,
+   color: difficultyLevels[goal.diff].textColor,
+   fontWeight: 700,
+   padding: '2px 6px',
+   borderRadius: 2,
+   mr:1,
+   fontFamily:'k2d'
+ }}
+>
+ {difficultyLevels[goal.diff].name}
+</Typography>}
                         <Button
                           onClick={() => completegoal(goal,project._id, project.projectName)}
                           sx={{
@@ -722,11 +912,36 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                         </Button>
                       </Box>
                     ))}
-                    {project.repoName && <Button startIcon={<GitHubIcon sx={{color:'white'}}/>} 
+                    {project.repoName && (
+                      <Box sx={{padding:1}}>
+                        <Box sx={{display:'flex', flexDirection:'row', cursor:'pointer'}}>
+                        <Typography sx={{color:'white', fontFamily:'k2d', fontSize:15}} onClick={()=>toggleCollapseRepo(project._id)}>repository details</Typography>
+                        {collapsedRepo[project._id] ? (
+                    <KeyboardArrowDownIcon sx={{ color: "white" }} />
+                  ) : (
+                    <KeyboardArrowRightIcon sx={{ color: "white" }} />
+                  )}
+                        </Box>
+                       <Collapse in={collapsedRepo[project._id]}>
+                       <Box sx={{display:'flex', flexDirection:'row', justifyContent:'space-between', marginTop:1}}>
+                      <Button startIcon={<GitHubIcon sx={{color:'white'}}/>} 
                      sx={{ textTransform: 'none' }} 
                      onClick={() => window.open(`https://github.com/${user.username}/${project.repoName}`, '_blank')}>
-                     <Typography sx={{fontFamily:'k2d', color:'white', fontSize:12}}>{project.repoName}</Typography>
-                    </Button>}
+                     <Typography sx={{fontFamily:'k2d', color:'white', fontSize:15}}>{project.repoName}</Typography>
+                    </Button>
+                    <Button sx={{ textTransform: 'none', backgroundColor:'lightgrey' }} onClick={()=>{if(!repoloading)fetchRepoStructure(project.repoName)}}>
+                    {!repoloading?<Typography sx={{fontFamily:'k2d', color:'black', fontSize:15, fontWeight:'bold'}}>browse repo</Typography>:
+                     <CircularProgress size={20} color='black'/>}
+                    </Button>
+                    </Box>
+                    {repoData?.data.length>0 && repoData?.name && <RepoTreeDisplay files={repoData.data} repoName={repoData.name} contents={repoData.contents}/>}
+                    {repoData?.contents && <RepoContents contents={repoData.contents}/>}
+                    {repoData?.data.length===0 && <Typography sx={{color:'white', fontFamily:'k2d'}}>seems your repo is empty</Typography>}
+                    </Collapse>
+                    </Box>
+                    )}
+
+                  
                   </Box>
                 </Collapse>
               </Box>

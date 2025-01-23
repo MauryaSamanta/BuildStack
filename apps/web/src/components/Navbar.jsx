@@ -61,10 +61,23 @@ const Navbar = ({currentpage,togglepage}) => {
               fontSize: isSmallScreen ? '0.85rem' : '1rem',
               '&:hover': {
                 fontWeight: 'bold',
-                textDecoration: 'underline',
+                //textDecoration: 'underline',
                 backgroundColor: 'transparent',
               },
-              textDecoration: currentpage==='home' && 'underline',
+             
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                width: currentpage === 'home' ? '100%' : 0,
+                height: '2px',
+                backgroundColor: '#635acc',
+                transition: 'width 0.3s ease-in-out',
+              },
+              '&:hover::after': {
+                width: '100%',
+              }
             }}
             onClick={()=>{togglepage('home')}}
           >
@@ -78,10 +91,23 @@ const Navbar = ({currentpage,togglepage}) => {
               fontSize: isSmallScreen ? '0.85rem' : '1rem',
               '&:hover': {
                 fontWeight: 'bold',
-                textDecoration: 'underline',
+                //textDecoration: 'underline',
                 backgroundColor: 'transparent',
               },
-              textDecoration: currentpage==='projects' && 'underline',
+            
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                width: currentpage === 'projects' ? '100%' : 0,
+                height: '2px',
+                backgroundColor: '#635acc',
+                transition: 'width 0.3s ease-in-out',
+              },
+              '&:hover::after': {
+                width: '100%',
+              }
             }}
             onClick={()=>{togglepage('projects')}}
           >
