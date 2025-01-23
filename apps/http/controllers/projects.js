@@ -400,11 +400,8 @@ export const getFormattedRepoContents=async(req, res)=>{
                   }
 
                   // Skip likely binary files
-                  if (isBinaryFile(item.name)) {
-                      formattedContent += `---------------------\n`;
-                      formattedContent += `${item.path}\n`;
-                      formattedContent += `---------------------\n`;
-                      formattedContent += `[File skipped: Likely binary file]\n\n`;
+                  if (isBinaryFile(item.name) || item.name ==='.gitignore' || item.name==='package-lock.json' ) {
+                      
                       continue;
                   }
 
