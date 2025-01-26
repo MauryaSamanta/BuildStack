@@ -1,129 +1,150 @@
 import React from 'react';
-import { Container, Typography, Box, Divider, useMediaQuery, useTheme, Button } from '@mui/material';
+import { Container, Typography, Box, useMediaQuery, Button } from '@mui/material';
+import logo from "../assets/images/mayflower-ship.png";
 import { useNavigate } from 'react-router-dom';
-import logo from '../assets/images/mayflower-ship.png';
 
 const PrivacyPolicyPage = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const navigate = useNavigate();
-
+      const isSmallScreen = useMediaQuery('(max-width:600px)');
+      const navigate=useNavigate();
   return (
-    <Container
-      maxWidth="md"
+    <Box
       sx={{
-        //mt: isMobile ? 2 : 4,
-        mb: isMobile ? 2 : 4,
-        px: isMobile ? 2 : 0,
-        background: 'linear-gradient(145deg, #0c0c0c, #202020)',
-        fontFamily: 'K2D',
+        backgroundColor: 'black', 
+        minHeight: '100vh',
         color: 'white',
-        //borderRadius: 2,
-        boxShadow: 3,
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        p: 4
       }}
     >
-      {/* Header Section */}
-      <Box display="flex" alignItems="center" mb={isMobile ? 2 : 4}>
+      <Box display="flex" alignItems="center" mb={4} sx={{alignItems:'center', justifyContent:'center'}}>
         <img src={logo} alt="BuildStack Logo" style={{ width: 40, height: 40, marginRight: 8 }} />
-        <Typography variant={isMobile ? "h6" : "h5"} component="h1">
+        <Typography variant={"h5"} component="h1" sx={{fontFamily:'k2d'}}>
           BuildStack
         </Typography>
       </Box>
 
-      {/* Back Button */}
-      <Button
-        variant="outlined"
-        color="inherit"
-        onClick={() => navigate(-1)}
-        sx={{ mb: 3 }}
-      >
-        Back
-      </Button>
-
-      {/* Page Title */}
-      <Typography
-        variant={isMobile ? "h5" : "h4"}
-        component="h1"
-        gutterBottom
-      >
-        Privacy Policy
-      </Typography>
-
-     
-
-      <Divider sx={{ my: 2, borderColor: 'white' }} />
-
-      {/* Content Sections */}
-      <Typography
-        variant={isMobile ? "h6" : "h6"}
-        component="h2"
-        gutterBottom
-      >
-        1. Information We Collect
-      </Typography>
-      <Typography paragraph>
-        We collect the following types of information:
-      </Typography>
-      <Typography variant="subtitle1" component="h3" gutterBottom>
-        a. Personal Information
-      </Typography>
-      <Typography paragraph>
-        - Email Address: To create and manage your account, and for communication purposes.<br />
-        - Password: Stored securely and used for authentication.
-      </Typography>
-      <Typography variant="subtitle1" component="h3" gutterBottom>
-        b. Automatically Collected Information
-      </Typography>
-      <Typography paragraph>
-        - Device information (e.g., IP address, operating system, browser type).<br />
-        - Usage data (e.g., interactions with the app).
-      </Typography>
-
-      <Divider sx={{ my: 2, borderColor: 'white' }} />
-
-      <Typography
-        variant={isMobile ? "h6" : "h6"}
-        component="h2"
-        gutterBottom
-      >
-        2. How We Use Your Information
-      </Typography>
-      <Typography paragraph>
-        We use your information to:
-      </Typography>
-      <Typography component="ul" sx={{ pl: isMobile ? 2 : 3 }}>
-        <Typography component="li">Provide, operate, and improve the Service.</Typography>
-        <Typography component="li">Send account-related updates and communication.</Typography>
-        <Typography component="li">Respond to support requests and inquiries.</Typography>
-        <Typography component="li">
-          Ensure the security of your account and prevent unauthorized access.
+      <Box sx={{ textAlign: 'center', mb: 4, }}>
+        <Typography
+          sx={{
+            fontSize: !isSmallScreen?'2.5rem':'1.5rem',
+            fontWeight: 'bold',
+            color: 'white',
+            fontFamily:'k2d'
+          }}
+        >
+          Privacy Policy & Terms of Service
         </Typography>
-      </Typography>
+      </Box>
 
-      <Divider sx={{ my: 2, borderColor: 'white' }} />
-
-      <Typography
-        variant={isMobile ? "h6" : "h6"}
-        component="h2"
-        gutterBottom
-      >
-        3. How We Protect Your Information
-      </Typography>
-      <Typography paragraph>
-        We implement technical, administrative, and organizational measures to secure your data, including:
-      </Typography>
-      <Typography component="ul" sx={{ pl: isMobile ? 2 : 3 }}>
-        <Typography component="li">Encrypting passwords and sensitive data.</Typography>
-        <Typography component="li">Using secure servers and firewalls.</Typography>
-        <Typography component="li">
-          Limiting access to personal data to authorized personnel.
+      <Box sx={{
+        maxWidth: 800,
+        mx: 'auto',
+        textAlign: 'left'
+      }}>
+        <Typography
+          sx={{
+            fontSize: '1.1rem',
+            color: 'white',
+            mb: 2,
+            fontFamily:'k2d'
+          }}
+        >
+          <strong>Data Collection and Protection</strong>
         </Typography>
-      </Typography>
 
-     
+        <Typography
+          sx={{
+            fontSize: '1rem',
+            color: 'white',
+            mb: 2,
+            fontFamily:'k2d'
+          }}
+        >
+          BuildStack is committed to maintaining the highest standards of data privacy and security. We collect minimal user information to provide and improve our services while ensuring complete transparency about our data handling practices.
+        </Typography>
 
-    
-    </Container>
+        <Typography
+          sx={{
+            fontSize: '1.1rem',
+            color: 'white',
+            mb: 2,
+            fontFamily:'k2d'
+          }}
+        >
+          <strong>User Data Collection</strong>
+        </Typography>
+
+        <Box
+          component="ul"
+          sx={{
+            pl: 3,
+            color: 'white',
+            fontSize: '1rem'
+          }}
+        >
+          <li style={{fontFamily:'k2d'}}>Email and Password: We collect user email addresses and passwords for account authentication and service access.</li>
+          <li style={{fontFamily:'k2d'}}>Password Security: All user passwords are stored in a highly secure, salted and bcrypt-encrypted format, ensuring maximum protection against potential breaches.</li>
+          <li style={{fontFamily:'k2d'}}>Email Confidentiality: We guarantee that user email addresses will never be shared, sold, or distributed to third parties under any circumstances.</li>
+        </Box>
+
+        <Typography
+          sx={{
+            fontSize: '1.1rem',
+            color: 'white',
+            mb: 2,
+            mt: 2,
+            fontFamily:'k2d'
+          }}
+        >
+          <strong>GitHub Repository Interaction</strong>
+        </Typography>
+
+        <Box
+          component="ul"
+          sx={{
+            pl: 3,
+            color: 'white',
+            fontSize: '1rem'
+          }}
+        >
+          <li style={{fontFamily:'k2d'}}>Repository Creation: We assist users in creating GitHub repositories through our platform.</li>
+          <li style={{fontFamily:'k2d'}}>Strict Non-Interference Policy: We do not view, modify, or access the contents of user-created repositories. All repository management occurs directly through GitHub's interfaces.</li>
+          <li style={{fontFamily:'k2d'}}>Client-Side Operations: In the browse repo function, the repository contents are shown on the client-side and are not stored on our servers at any point.</li>
+        </Box>
+
+        <Typography
+          sx={{
+            mt: 2,
+            fontSize: '1rem',
+            color: 'white',
+            fontFamily:'k2d'
+          }}
+        >
+          By using BuildStack, you acknowledge and agree to our comprehensive data protection and privacy practices. We are dedicated to providing a secure, transparent, and user-centric service experience.
+        </Typography>
+        <Box sx={{ display:'flex',alignItems:'center', justifyContent:'center',mt:!isSmallScreen?2:1}}>
+        <Button sx={{backgroundColor:'#353935', padding:1, fontFamily:'k2d', color:'white', textTransform: 'lowercase' }} onClick={()=>{navigate('/')}}>
+          <Typography sx={{fontFamily:'k2d', color:'white', letterSpacing:2}}>
+          back to login
+          </Typography>
+        </Button>
+        </Box>
+        <Typography
+          sx={{
+            mt: 4,
+            textAlign: 'center',
+            fontSize: '0.8rem',
+            color: 'white',
+            fontFamily:'k2d'
+          }}
+        >
+          Last Updated: January 2025
+        </Typography>
+      
+      </Box>
+    </Box>
   );
 };
 

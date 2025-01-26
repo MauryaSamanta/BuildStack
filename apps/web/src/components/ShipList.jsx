@@ -199,15 +199,15 @@ const difficultyLevels = [
           padding: "4px 16px",
           borderRadius: 2,
           border: "2px solid",
-          borderColor: selectedFilter === "All" ? "#4a4a4a" : "#4a4a4a",
-          backgroundColor: selectedFilter === "All" ? "#4a4a4a" : "rgba(200, 200, 200, 0.2)",
-          color: selectedFilter === "All" ? "white" : "#6a6a6a",
+          borderColor: selectedFilter === "All" ? "#635acc" : "#4a4a4a",
+          backgroundColor: selectedFilter === "All" ? "rgba(64, 60, 107,0.5)" : "rgba(200, 200, 200, 0.2)",
+          color: selectedFilter === "All" ? "#635acc" : "white",
           cursor: "pointer",
           "&:hover": {
-            backgroundColor: "#6a6a6a",
+            backgroundColor: "rgba(64, 60, 107,0.5)",
             color: "white",
           },
-          fontFamily:'k2d', fontSize:12, color:'white',
+          fontFamily:'k2d', fontSize:12, 
            textTransform: "none"
         }}
         onClick={()=>{handleprojectclick('All')}}>
@@ -262,15 +262,15 @@ const difficultyLevels = [
             minWidth: 'fit-content',
             borderRadius: 2,
             border: "2px solid",
-            borderColor: selectedFilter === project ? "#4a4a4a" : "#4a4a4a",
-            backgroundColor: selectedFilter === project ? "#4a4a4a" : "rgba(200, 200, 200, 0.2)",
-            color: selectedFilter === project ? "white" : "#6a6a6a",
+            borderColor: selectedFilter === project ? "#635acc" : "#4a4a4a",
+            backgroundColor: selectedFilter === project ? "rgba(64, 60, 107,0.5)" : "rgba(200, 200, 200, 0.2)",
+            color: selectedFilter === project ? "#635acc" : "white",
             cursor: "pointer",
             "&:hover": {
-              backgroundColor: "#6a6a6a",
+              backgroundColor: "rgba(64, 60, 107,0.5)",
               color: "white",
             },
-            fontFamily:'k2d', fontSize:12, color:'white',
+            fontFamily:'k2d', fontSize:12, 
              textTransform: "none"
           }}
           

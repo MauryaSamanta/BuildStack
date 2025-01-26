@@ -7,6 +7,7 @@ import {useSelector} from 'react-redux';
 import AuthPage from './pages/AuthPage';
 import PrivacyPolicyPage from './pages/Privacy';
 import Callback from './components/Callback';
+import AboutUsPage from './pages/AboutUs';
 const App = () => {
   const theme = createTheme({
     overrides: {
@@ -38,6 +39,8 @@ const App = () => {
       <Routes>
         <Route path="/" element={user && token?(!isSmallScreen?<MainPage />:<MainPageMobile/>):(<AuthPage/>)} />
         <Route path="/home" element={!isSmallScreen && user && token?(<MainPage />):(isSmallScreen && user && token ?(<MainPageMobile/>):(<AuthPage/>))} />
+        <Route path="/privacy" element={<PrivacyPolicyPage/>} />
+        <Route path="/about" element={<AboutUsPage/>} />
         <Route path="/callback" element={<Callback/>} />
       </Routes>
       </ThemeProvider>

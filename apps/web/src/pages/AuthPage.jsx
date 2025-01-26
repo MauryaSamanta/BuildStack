@@ -308,6 +308,12 @@ const AuthPage = () => {
             ? "Don't have an account? Sign Up"
             : 'Already have an account? Login'}
         </Typography>
+        <Box sx={{display:'flex', flexDirection:'row', alignItems:'center', justifyContent:'center'}}>
+          <Typography sx={{color:'grey', fontFamily:'k2d', mr:1, cursor:'pointer'}} onClick={()=>{navigate('/about')}}>about us</Typography>
+          <Box sx={{color:'grey', width:7, height:7, borderRadius:'50%', 
+            backgroundColor:'grey', alignSelf:'center',justifyContent:'center',mt:0.5}}/>
+          <Typography sx={{color:'grey', fontFamily:'k2d',ml:1, cursor:'pointer'}} onClick={()=>{navigate('/privacy')}}>privacy policy</Typography>
+        </Box>
       </Paper>
     </Box>
   );
