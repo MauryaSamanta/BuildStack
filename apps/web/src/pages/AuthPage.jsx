@@ -44,8 +44,10 @@ const AuthPage = () => {
         })
        
       );
-      if(loggedInUser)
+      if(loggedInUser.user.persona)
         navigate('/home');
+      else
+      navigate('/onboard');
       setloading(false);
       } catch (error) {
         
@@ -70,8 +72,10 @@ const AuthPage = () => {
          
         })
       );
-      if(loggedInUser)
+      if(loggedInUser.user.persona)
         navigate('/home');
+      else
+      navigate('/onboard');
       setloading(false);
       } catch (error) {
         

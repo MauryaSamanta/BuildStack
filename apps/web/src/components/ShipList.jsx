@@ -205,7 +205,7 @@ const difficultyLevels = [
           cursor: "pointer",
           "&:hover": {
             backgroundColor: "rgba(64, 60, 107,0.5)",
-            color: "white",
+           // color: "white",
           },
           fontFamily:'k2d', fontSize:12, 
            textTransform: "none"
@@ -268,7 +268,7 @@ const difficultyLevels = [
             cursor: "pointer",
             "&:hover": {
               backgroundColor: "rgba(64, 60, 107,0.5)",
-              color: "white",
+              //color: "white",
             },
             fontFamily:'k2d', fontSize:12, 
              textTransform: "none"

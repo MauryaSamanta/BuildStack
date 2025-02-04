@@ -8,6 +8,9 @@ import AuthPage from './pages/AuthPage';
 import PrivacyPolicyPage from './pages/Privacy';
 import Callback from './components/Callback';
 import AboutUsPage from './pages/AboutUs';
+import OnboardingQuestionnaire from './pages/Onboarding';
+import { useDispatch } from 'react-redux';
+import { setLogout } from './state';
 const App = () => {
   const theme = createTheme({
     overrides: {
@@ -29,7 +32,11 @@ const App = () => {
   });
   const isSmallScreen = useMediaQuery('(max-width: 768px)'); // Media query for phones and tablets
   const user=useSelector(state=>state.user);
+  //console.log(user);
+  const dispatch=useDispatch();
+  //dispatch(setLogout());
   const token=useSelector(state=>state.token);
+  //console.log(token);
   return (
     <BrowserRouter>
     <ThemeProvider theme={theme}>
@@ -38,6 +45,7 @@ const App = () => {
 
       <Routes>
         <Route path="/" element={user && token?(!isSmallScreen?<MainPage />:<MainPageMobile/>):(<AuthPage/>)} />
+        <Route path="/onboard" element={<OnboardingQuestionnaire/>} />
         <Route path="/home" element={!isSmallScreen && user && token?(<MainPage />):(isSmallScreen && user && token ?(<MainPageMobile/>):(<AuthPage/>))} />
         <Route path="/privacy" element={<PrivacyPolicyPage/>} />
         <Route path="/about" element={<AboutUsPage/>} />

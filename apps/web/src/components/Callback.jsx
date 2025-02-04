@@ -1,5 +1,5 @@
 // src/components/Callback.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Box, 
@@ -63,9 +63,12 @@ const Callback = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const dispatch = useDispatch();
-
+  const isCalled = useRef(false);
   useEffect(() => {
+    
     const handleCallback = async () => {
+      if (isCalled.current) return; // Prevent double calls
+      isCalled.current = true;
       try {
         const code = new URLSearchParams(location.search).get('code');
         
@@ -83,14 +86,14 @@ const Callback = () => {
           body: JSON.stringify({ code }),
         });
 
-        console.log(response);
+       
 
         if (!response.ok) {
           throw new Error('Failed to authenticate with GitHub');
         }
 
         const data = await response.json();
-        console.log(data);
+        
         if (data.error) {
           throw new Error(data.error);
         }
@@ -102,19 +105,24 @@ const Callback = () => {
             githubtoken: data.githubtoken
           })
         );
-        if (data)
-          navigate('/home');
+       
+        if (data.user.persona?.color?.length===2)
+        {console.log('home');  navigate('/home');}
+        else
+       {console.log('onboard'); navigate('/onboard');}
+
         
       } catch (err) {
         console.error('Authentication Error:', err);
         setError(err.message);
         setIsLoading(false);
+      
         setTimeout(() => navigate('/'), 3000);
       }
     };
 
     handleCallback();
-  }, [navigate, location]);
+  }, []);
 
   return (
     <Box sx={{ display: 'flex',

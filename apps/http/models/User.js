@@ -7,8 +7,24 @@ const userSchema = new Schema(
   { githubId:{
     type:String
   },
-
-    email: {
+  avatar:{
+    type:String
+  },
+  username:{
+    type:String
+  },
+  persona: {
+    text: {
+        type: String,
+        //required: true
+    },
+    color: {
+        type: [String],
+        
+        //required: true
+    }
+},
+  email: {
       type: String,
       required: true,
       unique: true,

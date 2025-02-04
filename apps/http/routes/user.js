@@ -1,5 +1,5 @@
 import express from 'express';
-import { loginUser, signupUser, githubLogin } from '../controllers/user.js'; // Assuming controllers are in the controllers folder
+import { loginUser, signupUser, githubLogin, savepersona } from '../controllers/user.js'; // Assuming controllers are in the controllers folder
 
 const router = express.Router();
 
@@ -11,4 +11,5 @@ router.post('/v1/login', loginUser);
 
 router.post('/v1/githublogin', githubLogin);    
 
+router.post('/onboard', savepersona);
 export default router;

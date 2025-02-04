@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js'; // Import your User model
 import dotenv from 'dotenv';
+import OpenAI from "openai";
 dotenv.config();
 // Secret key for JWT (store securely in environment variables)
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
@@ -68,7 +69,7 @@ export const loginUser = async (req, res) => {
 
 export const githubLogin = async (req, res) => { 
   const { code } = req.body;
-  console.log("code=", code);
+
   const data={ client_id: GITHUB_CLIENT_ID,
     client_secret: GITHUB_CLIENT_SECRET,
     code}
@@ -93,66 +94,54 @@ export const githubLogin = async (req, res) => {
     }
 
     const accessToken = returnedToken.access_token;
-    //console.log(tokenResponse)
-   
-    // console.log("accessToken=", accessToken);
-    // Get user data from GitHub
-    const userResponse = await fetch('https://api.github.com/user', {
-      headers: {
+    
+    const [userResponse, emailResponse] = await Promise.all([
+      fetch('https://api.github.com/user', { headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/json"
-      },
-      method:"GET",
-    });
-
-    // Get user's email from GitHub
-    const emailResponse = await fetch('https://api.github.com/user/emails', {
-      headers: {
+      }, method: "GET" }),
+      fetch('https://api.github.com/user/emails', { headers: {
         Authorization: `Bearer ${accessToken}`,
         Accept: "application/json"
-      },
-      method:"GET",
-    });
-   // console.log(emailResponse);
+      }, method: "GET" })
+    ]);
+    //console.log("email=",emailResponse);
     const returneduser=await userResponse.json();
     const returnedemail=await emailResponse.json(); 
+    //console.log(returnedemail[0].email);
     const userData = returneduser;
-    console.log(returneduser)
-    let primaryEmail
-   for(var i=0;i<returnedemail.length;i++)  {
-    const email=returnedemail[i]; 
-    //console.log(email);
-    if(email.primary){
-      primaryEmail=email.email;
-     // console.log("primaryEmail=", primaryEmail); 
-      break;
-    }
-   }
- 
-    if (!primaryEmail) {
-      throw new Error('No email found for this GitHub account');
-    }
-
-    // Find or create user in MongoDB
+    //console.log(returneduser)
+    const primaryEmailObj = Array.isArray(returnedemail) 
+    ? returnedemail.find(emailObj => emailObj.primary === true) 
+    : null;
+    const primaryEmail = primaryEmailObj ? primaryEmailObj.email : null;
+   
+   // Find or create user in MongoDB
     let user={};
      user = await User.findOne({ email:primaryEmail });
     
     if (!user) {
-      // Create new user
-      user = await User.create({
+     
+      const newuser = new User({
         githubId: userData.id,
-        email: primaryEmail,
+        email:  primaryEmail,
         username: userData.login,
-        //avatarUrl: userData.avatar_url
+        avatar:userData.avatar_url
+     
       });
+      const newUser2=await newuser.save();
+      user=newUser2;
     } else {
-      // Update existing user's last login
+      //console.log(primaryEmail)
       user.lastLogin = new Date();
-      githubId: userData.id,
+      user.githubId=userData.id;
       user.email = primaryEmail; // Update email in case it changed
+      
       user.username = userData.login;
-      //user.avatarUrl = userData.avatar_url;
-      await user.save();
+      user.avatar=userData.avatar_url
+      //console.log("user=",user);
+      const newUser=await user.save();
+      
     }
 
     // Create JWT token with user data
@@ -162,7 +151,8 @@ export const githubLogin = async (req, res) => {
         githubId: user.githubId,
         email: user.email,
         username: user.username,
-        //avatarUrl: user.avatarUrl
+        avatar:userData.avatar_url,
+        
       },
       JWT_SECRET,
       { expiresIn: '24h' }
@@ -175,16 +165,80 @@ export const githubLogin = async (req, res) => {
         id: user._id,
         email: user.email,
         username: user.username,
-        //avatarUrl: user.avatarUrl
+        avatar:userData.avatar_url,
+        persona:user.persona
       },
       githubtoken:accessToken
     });
 
   } catch (error) {
     console.error('Error:', error.response?.data || error.message);
+    //console.error(error.stack);
     res.status(500).json({ 
       error: 'Authentication failed',
       message: error.message 
     });
   }
 }
+
+const openai = new OpenAI({
+  apiKey: process.env.OPEN_AI_SECRET, // Ensure this is set in .env
+});
+
+export const savepersona = async (req, res) => {
+  const { userid, prompt } = req.body;
+ 
+  // Array of professional and visually appealing gradient pairs
+  const gradientPairs = [
+    ["#635acc", "#3b3663"],  // Purple mystic
+    ["#FF6B6B", "#556270"],  // Sunset charcoal
+    ["#36D1DC", "#5B86E5"],  // Ocean breeze
+    ["#007991", "#78ffd6"],  // Tropical waters
+    ["#659999", "#f4791f"],  // Earthy sunset
+    ["#dd5e89", "#f7bb97"],  // Rose dawn
+    ["#4facfe", "#00f2fe"],  // Electric blue
+    ["#43cea2", "#185a9d"],  // Forest depths
+    ["#141E30", "#243B55"],  // Midnight steel
+    ["#8E2DE2", "#4A00E0"],  // Royal purple
+  ];
+
+  try {
+    // Get persona description from OpenAI
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
+      messages: [
+        { 
+          role: "system", 
+          content: "You are an enthusiastic builder persona judge. Provide a concise, unique, inspiring and creative description of the user's builder personality based on their answers. Keep it under 25 tokens." 
+        },
+        { role: "user", content: prompt }
+      ],
+      temperature: 1,
+      max_tokens: 25,
+    });
+
+    const personalityText = response.choices[0].message.content;
+    
+    // Randomly select a gradient pair
+    const randomGradient = gradientPairs[Math.floor(Math.random() * gradientPairs.length)];
+
+    // Find and update user with new persona object
+    let user = await User.findById(userid);
+    user.persona = {
+      text: personalityText,
+      color: randomGradient
+    };
+    //console.log(user);
+    const newUser=await user.save();
+    console.log(newUser);
+    res.status(200).json( {id: user._id,
+      email: user.email,
+      username: user.username,
+      avatar:user.avatar,
+      persona:user.persona});
+
+  } catch (error) {
+    console.error("Error in savepersona:", error);
+    res.status(500).json({ error: "Failed to save persona" });
+  }
+};
