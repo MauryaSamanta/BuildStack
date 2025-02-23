@@ -4,7 +4,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import ShipList from '../components/ShipList';  // Assuming ShipList is a component that lists ships.
 import Navbar from '../components/Navbar';
 import ActivityChart from '../components/ActivityChart';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Empty from "../assets/images/empty-folder.png";
 import { CircularProgress } from '@mui/material';
 import SaveIcon from "../assets/images/bookmark.png";
@@ -12,6 +12,8 @@ import ProjectsPage from '../components/Projects';
 import CreateRepoLoader from '../components/CreateRepoLoader';
 import CreateMainLoader from '../components/CreateMainLoader';
 import CloseIcon from '@mui/icons-material/Close';
+import { setLogout } from '../state';
+import { useSearchParams } from 'react-router-dom';
 
 const MainPage = () => {
   const user = useSelector((state)=>state.user);
@@ -40,10 +42,11 @@ const MainPage = () => {
   const [loading,setloading]=useState(false);
   const [dataloading,setdataloading]=useState(false);
   const [showmsg,setshowmsg]=useState(Boolean(githubToken));
+  const [searchParams] = useSearchParams();
   useEffect(() => {
     setdataloading(true);
     const getships=async()=>{
-      const response=await fetch(`https://buildstack.onrender.com/ship/getships/${user.id}`,{
+      const response=await fetch(`http://localhost:3000/ship/getships/${user.id}`,{
         method:"GET",
       });
       const ships=await response.json();
@@ -66,13 +69,20 @@ const MainPage = () => {
     }
 
     getships();
+  
   },[]);
-
+  
+  useEffect(() => {
+    if (searchParams.get("from") === "extension") {
+      setcurrentpage("projects"); // Open projects
+      
+    }
+  }, [searchParams]);
 
   const saveShip=async()=>{
     setloading(true);
     try {
-      const response=await fetch(`https://buildstack.onrender.com/ship/save`,{
+      const response=await fetch(`http://localhost:3000/ship/save`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(formData)
@@ -230,7 +240,8 @@ const MainPage = () => {
         </Grid>
       </Grid>
     ):(
-    <ProjectsPage addnewprojectname={addnewprojectnames} activityData={activityData} setActivityData={setActivityData} setShips={setShips} setTodaysShips={setTodaysShips} setTotalShips={setTotalShips}/>)}
+    <ProjectsPage addnewprojectname={addnewprojectnames} activityData={activityData} setActivityData={setActivityData} setShips={setShips} setTodaysShips={setTodaysShips} setTotalShips={setTotalShips}
+    />)}
     </Box>):(<CreateMainLoader/>)}
     </>
   );

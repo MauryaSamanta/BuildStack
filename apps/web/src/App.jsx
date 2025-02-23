@@ -36,7 +36,7 @@ const App = () => {
   const dispatch=useDispatch();
   //dispatch(setLogout());
   const token=useSelector(state=>state.token);
-  //console.log(token);
+  console.log(user);
   return (
     <BrowserRouter>
     <ThemeProvider theme={theme}>

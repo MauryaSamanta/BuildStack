@@ -1,0 +1,32 @@
+{
+    "manifest_version": 3,
+    "name": "BuildStack Bridge",
+    "version": "1.0",
+    "description": "Adds a button to GitHub repo pages to import repo directly to BuildStack Projects.",
+    "permissions": ["activeTab", "storage"],
+    "host_permissions": ["https://github.com/*"],
+    "content_scripts": [
+      {
+        "matches": ["https://github.com/*"],
+        "js": ["content.js"]
+      }
+    ],
+    
+  "web_accessible_resources": [
+    {
+      "resources": ["mayflower-ship.png"],
+      "matches": ["https://github.com/*"],
+      "extension_ids": []
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+    "icons": {
+        "16": "mayflower-ship.png",
+        "48": "mayflower-ship.png",
+        "128": "mayflower-ship.png"
+      }
+  
+  }
+  

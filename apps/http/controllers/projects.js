@@ -275,8 +275,18 @@ export const getprojects=async(req,res)=> {
 }
 
 export const getuserrepos=async(req,res)=>{
-  const {accessToken,username}=req.body;
+  const {accessToken,username,repoOwner, repoName}=req.body;
   try {
+    if(repoOwner && repoName){
+      const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/forks`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            Accept: "application/vnd.github+json",
+           
+        }
+    });
+    }
     const url = new URL('https://api.github.com/user/repos');
       url.searchParams.append('sort', 'updated');
       url.searchParams.append('affiliation', 'owner,collaborator,organization_member');
@@ -306,6 +316,7 @@ export const getuserrepos=async(req,res)=>{
         console.log(error);
   }
 }
+
 export const getrepostruct = async (req, res) => {
   try {
     const { owner, repo, accessToken } = req.body;
@@ -374,127 +385,6 @@ export const getrepostruct = async (req, res) => {
     });
   }
 };
-
-// export const getFormattedRepoContents=async(req, res)=>{
-//   try {
-//       const { repoName, username, accessToken } = req.body;
-//       const baseUrl = `https://api.github.com/repos/${username}/${repoName}/contents`;
-      
-//       // Function to fetch file content
-//       async function getFileContent(path) {
-//           const response = await fetch(`${baseUrl}/${path}`, {
-//               headers: {
-//                   'Accept': 'application/vnd.github.v3.raw',
-//                   // Add your GitHub token here if needed
-//                   'Authorization': `Bearer ${accessToken}`,
-//               }
-//           });
-          
-//           if (!response.ok) {
-//               throw new Error(`HTTP error! status: ${response.status}`);
-//           }
-          
-//           return await response.text();
-//       }
-
-//       // Function to process directory contents recursively
-//       async function processDirectory(path = '') {
-//           const response = await fetch(`${baseUrl}${path}`, {
-//               headers: {
-//                   'Accept': 'application/vnd.github.v3+json',
-//                  'Authorization': `Bearer ${accessToken}`,
-//               }
-//           });
-
-//           if (!response.ok) {
-//               throw new Error(`HTTP error! status: ${response.status}`);
-//           }
-
-//           const data = await response.json();
-//           let formattedContent = '';
-          
-//           for (const item of data) {
-//               if (item.type === 'file') {
-//                   // Skip very large files
-//                   if (item.size > 1000000) {
-//                       formattedContent += `---------------------\n`;
-//                       formattedContent += `${item.path}\n`;
-//                       formattedContent += `---------------------\n`;
-//                       formattedContent += `[File skipped: File too large (${Math.round(item.size/1024)}KB)]\n\n`;
-//                       continue;
-//                   }
-
-//                   // Skip likely binary files
-//                   if (isBinaryFile(item.name) || item.name ==='.gitignore' || item.name==='package-lock.json' ) {
-                      
-//                       continue;
-//                   }
-
-//                   try {
-//                       const content = await getFileContent(item.path);
-//                       formattedContent += `---------------------\n`;
-//                       formattedContent += `${item.path}\n`;
-//                       formattedContent += `---------------------\n`;
-//                       formattedContent += `${content}\n\n`;
-//                   } catch (error) {
-//                       console.error(`Error fetching ${item.path}:`, error.message);
-//                       formattedContent += `[Error fetching file content]\n\n`;
-//                   }
-//               } else if (item.type === 'dir') {
-//                   formattedContent += await processDirectory('/' + item.path);
-//               }
-//           }
-          
-//           return formattedContent;
-//       }
-
-//       // Helper function to check if file is likely binary
-//       function isBinaryFile(filename) {
-//           // Common binary file extensions
-//           const binaryExtensions = new Set([
-//               // Images
-//               'png', 'jpg', 'jpeg', 'gif', 'ico', 'webp', 'bmp', 'tiff',
-//               // Documents
-//               'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx',
-//               // Archives
-//               'zip', 'tar', 'gz', 'rar', '7z',
-//               // Executables
-//               'exe', 'dll', 'so', 'dylib',
-//               // Media
-//               'mp3', 'mp4', 'avi', 'mov', 'wav', 'flac',
-//               // Other binary formats
-//               'ttf', 'otf', 'woff', 'woff2', 'eot'
-//           ]);
-
-//           // Get the file extension (everything after the last dot)
-//           const extension = filename.split('.').pop()?.toLowerCase();
-          
-//           // If there's no extension or it's not in our binary list, assume it's a text file
-//           if (!extension || !binaryExtensions.has(extension)) {
-//               return false;
-//           }
-          
-//           return true;
-//       }
-
-//       // Get formatted content
-//       const formattedContent = await processDirectory();
-      
-//       // Send response
-//       res.status(200).json({
-//           success: true,
-//           data: formattedContent
-//       });
-
-//   } catch (error) {
-//       console.error('Error:', error.message);
-//       res.status(500).json({
-//           success: false,
-//           error: 'Failed to fetch repository contents',
-//           details: error.message
-//       });
-//   }
-// }
 
 export const getFormattedRepoContents = async (req, res) => {
   try {
@@ -624,4 +514,15 @@ export const getFormattedRepoContents = async (req, res) => {
   }
 };
 
+export const deleteProject=async(req,res)=>{
+  const {projectid}=req.body;
+  try {
+    const deletedproject=await Project.deleteOne({_id:projectid});
+    res.status(200).json('success');
+    
+  } catch (error) {
+    console.log(error);
+    res.status(400).json('error');
+  }
+}
 

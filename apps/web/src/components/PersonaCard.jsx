@@ -15,9 +15,7 @@ const PersonaCardModal = ({ open, onClose, persona }) => {
           justifyContent: 'center',
           padding: { xs: 2, md: 4 }
         }}
-        BackdropProps={{
-          sx: { backgroundColor: 'rgba(0, 0, 0, 0.7)' } // Adjust opacity here
-        }}
+       
       >
       
           <motion.div

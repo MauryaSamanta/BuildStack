@@ -30,6 +30,9 @@ import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import RepoTreeDisplay from "./RepoStructure";
 import RepoContents from "./RepoContentsDisplay";
+import settings from "../assets/images/settings.png"
+import DeleteProjectDialog from "./DeleteProjectDialog";
+import { useSearchParams } from "react-router-dom";
 const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,setTodaysShips,setTotalShips}) => {
   const [projects, setProjects] = useState([ ]);
   const [repoData, setRepoData] = useState(null);
@@ -39,7 +42,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
   const [collapsedRepo, setCollapsedRepos] = useState([]);
   const theme = useTheme();
   const user=useSelector((state)=>state.user);
-  console.log(user)
+ 
   const token=useSelector((state)=>state.token);
   const githubtoken=useSelector((state)=>state.githubtoken);
   const preferences=useSelector((state)=>state.preferences);
@@ -50,7 +53,11 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
  const [loading,setloading]=useState(false);
  const [repoloading, setrepoloading]=useState(false);
  const [level,setlevel]=useState(0);
+ const [deleteOpen, setDeleteOpen] = useState(false);
   const dispatch=useDispatch();
+const [searchParams]=useSearchParams();
+
+
   const toggleCollapse = (projectId) => {
     setrepoloading(false);
     setCollapsedRepos((prev)=>({
@@ -162,11 +169,10 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
   }
 
   const addgoal=async()=>{
-    setNewGoal(newGoal => ({
-      ...newGoal,
-      diff: level
-     }));
+   
+    // console.log(newGoal.diff)
     const data={userid:user.id, text:newGoal.text, projectid:newGoal.projectid, diff:level};
+    console.log(JSON.stringify(data))
     setProjects((prevProjects) =>
       prevProjects.map((project) =>
         project._id === newGoal.projectid
@@ -177,15 +183,15 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
           : project
       )
     );
-   setNewGoal({userid:null,text:null,projectid:null, diff:null});
+    console.log(projects);
     try {
-      const response=await fetch('https://buildstack.onrender.com/projects/addgoal',{
+      const response=await fetch('http://localhost:3000/projects/addgoal',{
         method:"POST",
         body:JSON.stringify(data),
         headers:{"Content-Type":"application/json"}
       });
       const addedgoal=await response.json();
-
+      setNewGoal({userid:null,text:null,projectid:null, diff:null});
     } catch (error) {
       
     }
@@ -198,7 +204,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
       
       const data={userid:user.id, githubusername:user.username, githubToken:githubtoken};
       setloading(true);
-      const response=await fetch('https://buildstack.onrender.com/projects/getproj',{
+      const response=await fetch('http://localhost:3000/projects/getproj',{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(data)
@@ -213,6 +219,21 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
     
      setProjects(sortedProjects);
      setloading(false);
+     if (searchParams.get("from") === "extension" ) {
+      let repo=searchParams.get("repo");
+      const projfind=sortedProjects.find((project)=>project.repoName===repo);
+      
+      if(projfind?.repoName){
+        setCollapsedProjects((prev) => ({
+          ...prev,
+          [projfind._id]: true,
+        }));
+      }else
+     { console.log('working');
+      setcreateprojects(true)
+    }
+      
+    }
   }
     getprojects();
   },[])
@@ -220,13 +241,10 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
   const handlechange=(e,projectid)=>{
    
     setNewGoal({projectid:projectid,text:e.target.value});
-    console.log(newGoal)
+  
   }
 
-  const modifyMainPage=()=>{
-
-  }
-
+  
   const completegoal=async(goal,projectid, projectname)=>{
     const text=goal.text;
     const data={userid:user.id,projectid,text:goal.text, diff:goal.diff};
@@ -242,7 +260,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
             return project;
         })
     );
-      const response=await fetch('https://buildstack.onrender.com/projects/compgoal',{
+      const response=await fetch('http://localhost:3000/projects/compgoal',{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(data)
@@ -279,7 +297,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
   const fetchRepoStructure = async (repoName) => {
     setrepoloading(true);
    try {
-      const response = await fetch(`https://buildstack.onrender.com/projects/getrepostruct`,{
+      const response = await fetch(`http://localhost:3000/projects/getrepostruct`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -288,7 +306,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
           accessToken:githubtoken
         })
       });
-      const response2 = await fetch(`https://buildstack.onrender.com/projects/getrepocontents`,{
+      const response2 = await fetch(`http://localhost:3000/projects/getrepocontents`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -670,6 +688,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                     ))}
                      {project.repoName && (
                       <Box sx={{padding:1}}>
+                        <Box sx={{display:'flex', flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                         <Box sx={{display:'flex', flexDirection:'row'}}>
                         <Typography sx={{color:'white', fontFamily:'k2d', fontSize:15}} onClick={()=>toggleCollapseRepo(project._id)}>repository details</Typography>
                         {collapsedRepo[project._id] ? (
@@ -677,7 +696,13 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                   ) : (
                     <KeyboardArrowRightIcon sx={{ color: "white" }} />
                   )}
+                 
+                  </Box>
+                  {/* <IconButton sx={{display:'flex', flexDirection:'row'}} onClick={()=>{setDeleteOpen(project); }}>
+                        <img src={settings} style={{width:20, height:20}}/>
+                  </IconButton> */}
                         </Box>
+                     
                        <Collapse in={collapsedRepo[project._id]}>
                        <Box sx={{display:'flex', flexDirection:'row', justifyContent:'space-between', marginTop:1}}>
                       <Button startIcon={<GitHubIcon sx={{color:'white'}}/>} 
@@ -699,6 +724,12 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
 
                   </Box>
                 </Collapse>
+                <DeleteProjectDialog
+  project={deleteOpen}
+  open={Boolean(deleteOpen)}
+  onClose={() => setDeleteOpen(null)}
+  onDelete={()=>{console.log('hello')}}
+/>
               </Box>
             ) : (
                 <Box
@@ -886,7 +917,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                         >
                           {goal.text}
                         </Typography>
-                        {goal.diff && <Typography
+                        {goal.diff  && <Typography
  sx={{
    backgroundColor: difficultyLevels[goal.diff].backgroundColor,
    color: difficultyLevels[goal.diff].textColor,
@@ -897,7 +928,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
    fontFamily:'k2d'
  }}
 >
- {difficultyLevels[goal.diff].name}
+ {difficultyLevels[goal.diff].name} 
 </Typography>}
                         <Button
                           onClick={() => completegoal(goal,project._id, project.projectName)}
@@ -916,6 +947,7 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                     ))}
                     {project.repoName && (
                       <Box sx={{padding:1}}>
+                         <Box sx={{display:'flex', flexDirection:'row', justifyContent:'space-between', alignItems:'center'}}>
                         <Box sx={{display:'flex', flexDirection:'row', cursor:'pointer'}}>
                         <Typography sx={{color:'white', fontFamily:'k2d', fontSize:15}} onClick={()=>toggleCollapseRepo(project._id)}>repository details</Typography>
                         {collapsedRepo[project._id] ? (
@@ -923,6 +955,10 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                   ) : (
                     <KeyboardArrowRightIcon sx={{ color: "white" }} />
                   )}
+                  </Box>
+                  {/* <IconButton sx={{display:'flex', flexDirection:'row'}} onClick={()=>{setDeleteOpen(project); }}>
+                        <img src={settings} style={{width:20, height:20}}/>
+                  </IconButton> */}
                         </Box>
                        <Collapse in={collapsedRepo[project._id]}>
                        <Box sx={{display:'flex', flexDirection:'row', justifyContent:'space-between', marginTop:1}}>
@@ -946,7 +982,14 @@ const ProjectsPage = ({addnewprojectname, activityData,setActivityData,setShips,
                   
                   </Box>
                 </Collapse>
+                <DeleteProjectDialog
+  project={deleteOpen}
+  open={Boolean(deleteOpen)}
+  onClose={() => setDeleteOpen(null)}
+  onDelete={()=>{console.log('hello')}}
+/>
               </Box>
+              
             )}
           </Grid>
         ))}

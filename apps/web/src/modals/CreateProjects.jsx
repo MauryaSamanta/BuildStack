@@ -18,6 +18,8 @@ import { useSelector } from "react-redux";
 import CreateRepoLoader from "../components/CreateRepoLoader";
 import GitHubIcon from '@mui/icons-material/GitHub';
 import norepoIcon from "../assets/images/no-results.png"
+import { useSearchParams } from "react-router-dom";
+import ForkLoader from "../components/ForkRepoLoader";
 const ProjectSetupModal = ({ open, onClose, addprojects, projects }) => {
   const [projectName, setProjectName] = useState("");
   const [repoName, setRepoName] = useState("");
@@ -32,6 +34,9 @@ const ProjectSetupModal = ({ open, onClose, addprojects, projects }) => {
   const [repos,setrepos]=useState([]);
   const [projectexist,setprojectexist]=useState(false);
   const [reponametaken,setreponametaken]=useState(false);
+  const [forking, setforking]=useState(false);
+  const [searchParams,setSearchParams]=useSearchParams();
+
   const checkProjectExists = (projects, projectNameToCheck) => {
     return projects.some(project => project.projectName === projectNameToCheck);
   };
@@ -41,7 +46,7 @@ const ProjectSetupModal = ({ open, onClose, addprojects, projects }) => {
     setloading(true);
     try {
       let data = { userid: user.id, projectName, repoName, repoType: isPublic, githubtoken, selectedrepo };
-      const response = await fetch(!selectedrepo?'https://buildstack.onrender.com/projects/createproj':'https://buildstack.onrender.com/projects/createprojimport', {
+      const response = await fetch(!selectedrepo?'http://localhost:3000/projects/createproj':'http://localhost:3000/projects/createprojimport', {
         method: "POST",
         body: JSON.stringify(data),
         headers: {
@@ -69,14 +74,19 @@ const ProjectSetupModal = ({ open, onClose, addprojects, projects }) => {
 
   useEffect(()=>{
     const getallrepos=async()=>{
-      const data={username:user.username, accessToken:githubtoken};
+      const data={username:user.username, accessToken:githubtoken,repoName:searchParams.get('repo'), 
+        repoOwner:searchParams.get('owner')!==user.username?searchParams.get('owner'):''};
+        if(searchParams.get('repo') && searchParams.get('owner')!==user.username){
+          setforking(true);
+        }
       try {
-        const response=await fetch('https://buildstack.onrender.com/projects/getrepos',{
+        const response=await fetch('http://localhost:3000/projects/getrepos',{
           method:"POST",
           headers:{"content-Type":"application/json"},
           body:JSON.stringify(data)
         });
         const returneddata=await response.json();
+        setforking(false);
         // Filter out repos that are already used in projects
       const filteredRepos = returneddata.filter(repo => 
        !projects.some(project => project.repoName === repo.name)
@@ -84,20 +94,39 @@ const ProjectSetupModal = ({ open, onClose, addprojects, projects }) => {
       // console.log(filteredRepos);
       
       setrepos(filteredRepos);
+      
       } catch (error) {
         
       }
     }
     getallrepos();
-  },[projects])
-
+    
+  },[projects,open])
+  
+  useEffect(() => {
+    if (searchParams.get("from") === "extension") {
+      const repoName = searchParams.get("repo");
+      console.log(searchParams.get("repo"))
+      if (repoName && repos.length > 0) {  // Ensure repos is populated
+        const foundRepo = repos.find(repo => repo.name === repoName);
+        
+        if (foundRepo) {
+          setSelectedOption("import");
+          setselectedrepo(foundRepo);
+        }
+      }
+    }
+  }, [repos]);  
   const handleOptionClick = (option) => {
     setSelectedOption(selectedOption === option ? null : option);
   };
 
   return (
     <Modal open={open} onClose={()=>{onClose(); setProjectName(''); setprojectexist(false); setIsPublic(true); setRepoName(''); setSelectedOption(null);
-      setrepos([])
+      setselectedrepo('');
+      const newUrl = window.location.pathname; // Keep only the route
+      window.history.replaceState(null, '', newUrl);
+      setSearchParams({});
     }}>
       <Box
         sx={{
@@ -114,7 +143,7 @@ const ProjectSetupModal = ({ open, onClose, addprojects, projects }) => {
           padding: 4,
         }}
       >
-        {!loading ? (
+        {!loading && !forking ? (
           <>
             <Box
               sx={{
@@ -132,7 +161,10 @@ const ProjectSetupModal = ({ open, onClose, addprojects, projects }) => {
               </Typography>
               <IconButton
                 onClick={()=>{onClose(); setProjectName(''); setprojectexist(false); setIsPublic(true); setRepoName(''); setSelectedOption(null);
-                  setrepos([])
+                   setselectedrepo('');
+                   const newUrl = window.location.pathname; // Keep only the route
+                   window.history.replaceState(null, '', newUrl);
+                   setSearchParams({});
                 }}
                 sx={{
                   color: "white",
@@ -427,8 +459,10 @@ const ProjectSetupModal = ({ open, onClose, addprojects, projects }) => {
               )}
             </Box>
           </>
-        ) : (
+        ) : loading && !forking?(
           <CreateRepoLoader />
+        ):!loading && forking &&(
+          <ForkLoader/>
         )}
       </Box>
     </Modal>
