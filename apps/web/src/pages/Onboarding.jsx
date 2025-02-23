@@ -40,7 +40,7 @@ const OnboardingQuestionnaire = () => {
     
     const data={userid:user.id, prompt:openAIPrompt};
     try {
-      const response=await fetch('http://localhost:3000/user/onboard',{
+      const response=await fetch('https://buildstack.onrender.com/user/onboard',{
         body:JSON.stringify(data),
         headers:{"Content-Type":"application/json"},
         method:"POST"

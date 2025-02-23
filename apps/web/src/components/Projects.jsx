@@ -185,7 +185,7 @@ const [searchParams]=useSearchParams();
     );
     console.log(projects);
     try {
-      const response=await fetch('http://localhost:3000/projects/addgoal',{
+      const response=await fetch('https://buildstack.onrender.com/projects/addgoal',{
         method:"POST",
         body:JSON.stringify(data),
         headers:{"Content-Type":"application/json"}
@@ -204,7 +204,7 @@ const [searchParams]=useSearchParams();
       
       const data={userid:user.id, githubusername:user.username, githubToken:githubtoken};
       setloading(true);
-      const response=await fetch('http://localhost:3000/projects/getproj',{
+      const response=await fetch('https://buildstack.onrender.com/projects/getproj',{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(data)
@@ -260,7 +260,7 @@ const [searchParams]=useSearchParams();
             return project;
         })
     );
-      const response=await fetch('http://localhost:3000/projects/compgoal',{
+      const response=await fetch('https://buildstack.onrender.com/projects/compgoal',{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify(data)
@@ -297,7 +297,7 @@ const [searchParams]=useSearchParams();
   const fetchRepoStructure = async (repoName) => {
     setrepoloading(true);
    try {
-      const response = await fetch(`http://localhost:3000/projects/getrepostruct`,{
+      const response = await fetch(`https://buildstack.onrender.com/projects/getrepostruct`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
@@ -306,7 +306,7 @@ const [searchParams]=useSearchParams();
           accessToken:githubtoken
         })
       });
-      const response2 = await fetch(`http://localhost:3000/projects/getrepocontents`,{
+      const response2 = await fetch(`https://buildstack.onrender.com/projects/getrepocontents`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
         body:JSON.stringify({
